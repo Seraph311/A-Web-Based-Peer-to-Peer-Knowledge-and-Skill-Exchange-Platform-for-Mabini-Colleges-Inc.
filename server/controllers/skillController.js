@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const paginate = require('../utils/paginate');
 
 const createSkill = async (req, res) => {
   const { skill_name, description } = req.body;
@@ -134,12 +135,23 @@ const deleteSkill = async (req, res) => {
 
 const searchSkills = async (req, res) => {
   const { keyword } = req.query;
+  const { page, limit, offset } = paginate(req.query);
 
   if (!keyword) {
     return res.status(400).json({ message: 'Search keyword is required.' });
   }
 
   try {
+    const countResult = await pool.query(
+      `
+        SELECT COUNT(*)::int AS total
+        FROM skills s
+        WHERE s.skill_name ILIKE $1
+          AND s.is_available = true
+      `,
+      [`%${keyword}%`]
+    );
+
     const result = await pool.query(
       `
         SELECT
@@ -171,8 +183,10 @@ const searchSkills = async (req, res) => {
           u.contribution_points,
           u.badge_level
         ORDER BY average_rating DESC NULLS LAST
+        LIMIT $2
+        OFFSET $3
       `,
-      [`%${keyword}%`]
+      [`%${keyword}%`, limit, offset]
     );
 
     const results = result.rows.map((row) => ({
@@ -191,7 +205,17 @@ const searchSkills = async (req, res) => {
       },
     }));
 
-    return res.status(200).json({ results });
+    const total = countResult.rows[0].total;
+
+    return res.status(200).json({
+      results,
+      pagination: {
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+      },
+    });
   } catch (err) {
     return res.status(500).json({ message: 'Server error.' });
   }

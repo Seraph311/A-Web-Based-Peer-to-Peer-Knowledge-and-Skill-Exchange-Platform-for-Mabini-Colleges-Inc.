@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const paginate = require('../utils/paginate');
 
 const getBadgeLevel = (points) => {
   if (points >= 200) return 'Gold';
@@ -147,6 +148,7 @@ const getFeedbackBySession = async (req, res) => {
 
 const getFeedbackByUser = async (req, res) => {
   const { user_id } = req.params;
+  const { page, limit, offset } = paginate(req.query);
 
   try {
     const userResult = await pool.query('SELECT 1 FROM users WHERE user_id = $1', [user_id]);
@@ -179,10 +181,14 @@ const getFeedbackByUser = async (req, res) => {
           JOIN users u ON u.user_id = f.reviewer_id
           WHERE f.reviewed_user_id = $1
           ORDER BY f.created_at DESC
+          LIMIT $2
+          OFFSET $3
         `,
-        [user_id]
+        [user_id, limit, offset]
       ),
     ]);
+
+    const total = summaryResult.rows[0].total_reviews;
 
     return res.status(200).json({
       summary: {
@@ -191,6 +197,12 @@ const getFeedbackByUser = async (req, res) => {
         average_rating: summaryResult.rows[0].average_rating,
       },
       feedback: feedbackResult.rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+      },
     });
   } catch (err) {
     return res.status(500).json({ message: 'Server error.' });

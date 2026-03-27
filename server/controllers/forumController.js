@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const paginate = require('../utils/paginate');
 
 const createQuestion = async (req, res) => {
   const { title, content, topic_tag, department_tag } = req.body;
@@ -28,6 +29,7 @@ const createQuestion = async (req, res) => {
 
 const getQuestions = async (req, res) => {
   const { keyword, department_tag } = req.query;
+  const { page, limit, offset } = paginate(req.query);
   const conditions = [];
   const values = [];
 
@@ -47,15 +49,42 @@ const getQuestions = async (req, res) => {
     conditions.push(`department_tag = $${values.length}`);
   }
 
-  let query = 'SELECT * FROM forum_questions';
+  let whereClause = '';
   if (conditions.length > 0) {
-    query += ` WHERE ${conditions.join(' AND ')}`;
+    whereClause = ` WHERE ${conditions.join(' AND ')}`;
   }
-  query += ' ORDER BY created_at DESC';
+  const listQuery = `
+    SELECT *
+    FROM forum_questions
+    ${whereClause}
+    ORDER BY created_at DESC
+    LIMIT $${values.length + 1}
+    OFFSET $${values.length + 2}
+  `;
+
+  const countQuery = `
+    SELECT COUNT(*)::int AS total
+    FROM forum_questions
+    ${whereClause}
+  `;
 
   try {
-    const result = await pool.query(query, values);
-    return res.status(200).json({ questions: result.rows });
+    const [result, countResult] = await Promise.all([
+      pool.query(listQuery, [...values, limit, offset]),
+      pool.query(countQuery, values),
+    ]);
+
+    const total = countResult.rows[0].total;
+
+    return res.status(200).json({
+      questions: result.rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+      },
+    });
   } catch (err) {
     return res.status(500).json({ message: 'Server error.' });
   }

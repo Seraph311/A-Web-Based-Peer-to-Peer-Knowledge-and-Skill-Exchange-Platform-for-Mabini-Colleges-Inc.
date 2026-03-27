@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const paginate = require('../utils/paginate');
 
 const getUserProfileData = async (userId, includeSensitive = false) => {
   const userFields = includeSensitive
@@ -60,8 +61,7 @@ const getUserProfileData = async (userId, includeSensitive = false) => {
 
 const getLeaderboard = async (req, res) => {
   const { department } = req.query;
-  const parsedLimit = parseInt(req.query.limit, 10);
-  const limit = Number.isNaN(parsedLimit) || parsedLimit <= 0 ? 10 : Math.min(parsedLimit, 50);
+  const { page, limit, offset } = paginate(req.query);
 
   const values = [];
   let whereClause = '';
@@ -70,8 +70,6 @@ const getLeaderboard = async (req, res) => {
     values.push(department);
     whereClause = `WHERE u.department = $${values.length}`;
   }
-
-  values.push(limit);
 
   const query = `
     SELECT
@@ -89,13 +87,26 @@ const getLeaderboard = async (req, res) => {
     FROM users u
     ${whereClause}
     ORDER BY u.contribution_points DESC, u.user_id ASC
-    LIMIT $${values.length}
+    LIMIT $${values.length + 1}
+    OFFSET $${values.length + 2}
+  `;
+
+  const countQuery = `
+    SELECT COUNT(*)::int AS total
+    FROM users u
+    ${whereClause}
   `;
 
   try {
-    const result = await pool.query(query, values);
+    const [result, countResult] = await Promise.all([
+      pool.query(query, [...values, limit, offset]),
+      pool.query(countQuery, values),
+    ]);
+
+    const total = countResult.rows[0].total;
+
     const leaderboard = result.rows.map((row, index) => ({
-      rank: index + 1,
+      rank: offset + index + 1,
       user_id: row.user_id,
       name: row.name,
       department: row.department,
@@ -105,7 +116,15 @@ const getLeaderboard = async (req, res) => {
       average_rating: row.average_rating,
     }));
 
-    return res.status(200).json({ leaderboard });
+    return res.status(200).json({
+      leaderboard,
+      pagination: {
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+      },
+    });
   } catch (err) {
     return res.status(500).json({ message: 'Server error.' });
   }

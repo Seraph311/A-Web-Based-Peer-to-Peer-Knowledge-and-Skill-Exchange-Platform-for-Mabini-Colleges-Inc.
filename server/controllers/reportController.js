@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const paginate = require('../utils/paginate');
 
 const validContentTypes = ['forum_question', 'forum_answer', 'session', 'message', 'user'];
 
@@ -78,6 +79,7 @@ const getReports = async (req, res) => {
   }
 
   const { status, content_type } = req.query;
+  const { page, limit, offset } = paginate(req.query);
   const conditions = [];
   const values = [];
 
@@ -109,11 +111,30 @@ const getReports = async (req, res) => {
     query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
-  query += ' ORDER BY r.created_at DESC';
+  query += ` ORDER BY r.created_at DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+
+  let countQuery = 'SELECT COUNT(*)::int AS total FROM reports r';
+  if (conditions.length > 0) {
+    countQuery += ` WHERE ${conditions.join(' AND ')}`;
+  }
 
   try {
-    const result = await pool.query(query, values);
-    return res.status(200).json({ reports: result.rows });
+    const [result, countResult] = await Promise.all([
+      pool.query(query, [...values, limit, offset]),
+      pool.query(countQuery, values),
+    ]);
+
+    const total = countResult.rows[0].total;
+
+    return res.status(200).json({
+      reports: result.rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+      },
+    });
   } catch (err) {
     return res.status(500).json({ message: 'Server error.' });
   }

@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const paginate = require('../utils/paginate');
 
 const getBadgeLevel = (points) => {
   if (points >= 200) return 'Gold';
@@ -68,6 +69,7 @@ const createSession = async (req, res) => {
 
 const getSessions = async (req, res) => {
   const { status, session_type, keyword } = req.query;
+  const { page, limit, offset } = paginate(req.query);
   const conditions = [];
   const values = [];
 
@@ -86,7 +88,12 @@ const getSessions = async (req, res) => {
     conditions.push(`s.topic ILIKE $${values.length}`);
   }
 
-  let query = `
+  let whereClause = '';
+  if (conditions.length > 0) {
+    whereClause = ` WHERE ${conditions.join(' AND ')}`;
+  }
+
+  const listQuery = `
     SELECT
       s.*,
       (
@@ -95,17 +102,35 @@ const getSessions = async (req, res) => {
         WHERE sp.session_id = s.session_id
       ) AS participant_count
     FROM sessions s
+    ${whereClause}
+    ORDER BY s.created_at DESC
+    LIMIT $${values.length + 1}
+    OFFSET $${values.length + 2}
   `;
 
-  if (conditions.length > 0) {
-    query += ` WHERE ${conditions.join(' AND ')}`;
-  }
-
-  query += ' ORDER BY s.created_at DESC';
+  const countQuery = `
+    SELECT COUNT(*)::int AS total
+    FROM sessions s
+    ${whereClause}
+  `;
 
   try {
-    const result = await pool.query(query, values);
-    return res.status(200).json({ sessions: result.rows });
+    const [result, countResult] = await Promise.all([
+      pool.query(listQuery, [...values, limit, offset]),
+      pool.query(countQuery, values),
+    ]);
+
+    const total = countResult.rows[0].total;
+
+    return res.status(200).json({
+      sessions: result.rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+      },
+    });
   } catch (err) {
     return res.status(500).json({ message: 'Server error.' });
   }
