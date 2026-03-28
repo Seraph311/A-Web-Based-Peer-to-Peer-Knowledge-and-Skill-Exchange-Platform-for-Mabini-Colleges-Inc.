@@ -12,6 +12,7 @@ import DashboardPage  from './pages/DashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import ForumPage from './pages/ForumPage';
+import ForumQuestionPage from './pages/ForumQuestionPage';
 
 // Placeholder pages — to be implemented in subsequent prompts
 const Placeholder = ({ name }) => (
@@ -38,7 +39,7 @@ export default function App() {
           <Route path="/dashboard"   element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/forum"       element={<ProtectedRoute><ForumPage /></ProtectedRoute>} />
           <Route path="/forum/ask"   element={<ProtectedRoute><Placeholder name="Ask Question" /></ProtectedRoute>} />
-          <Route path="/forum/:id"   element={<ProtectedRoute><Placeholder name="Question Detail" /></ProtectedRoute>} />
+          <Route path="/forum/:id"   element={<ProtectedRoute><ForumQuestionPage /></ProtectedRoute>} />
           <Route path="/sessions"    element={<ProtectedRoute><Placeholder name="Sessions" /></ProtectedRoute>} />
           <Route path="/sessions/:id" element={<ProtectedRoute><Placeholder name="Session Room" /></ProtectedRoute>} />
           <Route path="/skills"      element={<ProtectedRoute><Placeholder name="Skills" /></ProtectedRoute>} />
