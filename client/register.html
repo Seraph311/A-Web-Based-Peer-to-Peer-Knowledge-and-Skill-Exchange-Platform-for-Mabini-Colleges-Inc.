@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyBridge - Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              200: '#99f6e4',
+              300: '#5eead4',
+              400: '#2dd4bf',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="font-sans bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white min-h-screen">
+  <header class="sticky top-0 z-40 bg-white/80 dark:bg-gray-950/80 backdrop-blur border-b border-gray-200 dark:border-gray-800">
+    <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="index.html" class="text-xl tracking-tight">
+        <span class="font-bold text-primary-600 dark:text-primary-400">Study</span><span class="font-bold text-gray-800 dark:text-white">Bridge</span>
+      </a>
+      <button onclick="toggleTheme()" class="h-10 w-10 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition" aria-label="Toggle theme">🌗</button>
+    </nav>
+  </header>
+
+  <main class="px-4 py-10 min-h-[calc(100vh-4rem)] flex items-center justify-center">
+    <section class="w-full max-w-lg rounded-2xl shadow-md p-8 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+      <div id="register-state">
+        <div class="text-center mb-8">
+          <h1 class="text-2xl tracking-tight">
+            <span class="font-bold text-primary-600 dark:text-primary-400">Study</span><span class="font-bold text-gray-800 dark:text-white">Bridge</span>
+          </h1>
+          <p class="mt-2 text-gray-500 dark:text-gray-400">Create your account</p>
+        </div>
+
+        <form id="register-form" class="space-y-4" novalidate>
+          <div>
+            <label for="name" class="block text-sm font-medium mb-2">Full Name</label>
+            <input type="text" id="name" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+            <p class="text-red-500 text-sm mt-1 hidden" id="name-error"></p>
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium mb-2">Email</label>
+            <input type="email" id="email" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+            <p id="institutional-hint" class="text-primary-600 text-xs mt-1 hidden">✓ Institutional email detected. You'll receive an OTP for instant approval.</p>
+            <p class="text-red-500 text-sm mt-1 hidden" id="email-error"></p>
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-medium mb-2">Password</label>
+            <div class="relative">
+              <input type="password" id="password" class="w-full px-4 py-2.5 pr-16 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+              <button type="button" data-toggle="password" class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Show</button>
+            </div>
+            <p class="text-red-500 text-sm mt-1 hidden" id="password-error"></p>
+          </div>
+
+          <div>
+            <label for="confirm-password" class="block text-sm font-medium mb-2">Confirm Password</label>
+            <div class="relative">
+              <input type="password" id="confirm-password" class="w-full px-4 py-2.5 pr-16 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+              <button type="button" data-toggle="confirm-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Show</button>
+            </div>
+            <p class="text-red-500 text-sm mt-1 hidden" id="confirm-password-error"></p>
+          </div>
+
+          <div>
+            <label for="department" class="block text-sm font-medium mb-2">Department</label>
+            <input type="text" id="department" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+            <p class="text-red-500 text-sm mt-1 hidden" id="department-error"></p>
+          </div>
+
+          <div>
+            <label for="role" class="block text-sm font-medium mb-2">Role</label>
+            <select id="role" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+              <option value="">Select role</option>
+              <option value="student">student</option>
+              <option value="instructor">instructor</option>
+              <option value="alumni">alumni</option>
+            </select>
+            <p class="text-red-500 text-sm mt-1 hidden" id="role-error"></p>
+          </div>
+
+          <div>
+            <label for="id-number" class="block text-sm font-medium mb-2">ID Number</label>
+            <input type="text" id="id-number" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+            <p class="text-red-500 text-sm mt-1 hidden" id="id-number-error"></p>
+          </div>
+
+          <div id="document-section">
+            <label for="id-document" class="block text-sm font-medium mb-2">Verification Document</label>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Upload your School ID, Enrollment Form / COR, Employee ID, or Alumni document. Accepted: JPEG, PNG, PDF. Max 5MB.</p>
+            <input type="file" id="id-document" accept=".jpg,.jpeg,.png,.pdf" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+            <p class="text-red-500 text-sm mt-1 hidden" id="id-document-error"></p>
+          </div>
+
+          <button id="create-account-btn" type="submit" class="w-full px-4 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition">Create Account</button>
+        </form>
+
+        <p class="mt-6 text-sm text-center text-gray-500 dark:text-gray-400">
+          Already have an account?
+          <a href="login.html" class="text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium">Sign in</a>
+        </p>
+      </div>
+
+      <div id="otp-state" class="hidden">
+        <div class="text-center mb-6">
+          <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Verify your email</h2>
+          <p class="mt-2 text-gray-500 dark:text-gray-400">We sent a 6-digit code to your institutional email. Enter it below to activate your account.</p>
+          <p class="mt-2 text-primary-600 dark:text-primary-400 font-medium" id="otp-email"></p>
+        </div>
+
+        <form id="otp-form" class="space-y-4" novalidate>
+          <div>
+            <label for="otp" class="block text-sm font-medium mb-2">OTP Code</label>
+            <input type="text" maxlength="6" id="otp" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition text-2xl tracking-widest text-center">
+            <p class="text-red-500 text-sm mt-1 hidden" id="otp-error"></p>
+          </div>
+
+          <button id="verify-btn" type="submit" class="w-full px-4 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition">Verify OTP</button>
+        </form>
+
+        <div class="mt-4 text-center">
+          <button id="resend-btn" type="button" class="text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium">Didn't receive it? Resend OTP</button>
+          <p id="resend-timer" class="text-sm text-gray-500 dark:text-gray-400 hidden"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium opacity-0 pointer-events-none transition-opacity duration-300 max-w-sm"></div>
+
+  <script>
+    if (localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+  <script>
+    const API = 'http://localhost:3001/api';
+
+    const getToken = () => localStorage.getItem('sb_token');
+    const getUser = () => JSON.parse(localStorage.getItem('sb_user') || 'null');
+    const setAuth = (token, user) => {
+      localStorage.setItem('sb_token', token);
+      localStorage.setItem('sb_user', JSON.stringify(user));
+    };
+    const clearAuth = () => {
+      localStorage.removeItem('sb_token');
+      localStorage.removeItem('sb_user');
+    };
+
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.theme = 'light';
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.theme = 'dark';
+      }
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = toast.className.replace(/bg-\S+/g, '');
+      toast.classList.add(type === 'success' ? 'bg-primary-600' : 'bg-red-500');
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 3500);
+    }
+
+    const institutionalDomain = '@mabinicolleges.edu.ph';
+    const registerState = document.getElementById('register-state');
+    const otpState = document.getElementById('otp-state');
+    const registerForm = document.getElementById('register-form');
+    const otpForm = document.getElementById('otp-form');
+    const emailInput = document.getElementById('email');
+    const hintEl = document.getElementById('institutional-hint');
+    const documentSection = document.getElementById('document-section');
+    const documentInput = document.getElementById('id-document');
+    const otpEmail = document.getElementById('otp-email');
+    const createAccountBtn = document.getElementById('create-account-btn');
+    const verifyBtn = document.getElementById('verify-btn');
+    const resendBtn = document.getElementById('resend-btn');
+    const resendTimer = document.getElementById('resend-timer');
+    let registeredEmail = '';
+    let countdown = 0;
+    let countdownInterval = null;
+
+    function setFieldError(fieldId, message) {
+      const errorEl = document.getElementById(`${fieldId}-error`);
+      if (!errorEl) {
+        return;
+      }
+      errorEl.textContent = message;
+      errorEl.classList.toggle('hidden', !message);
+    }
+
+    function clearRegisterErrors() {
+      ['name', 'email', 'password', 'confirm-password', 'department', 'role', 'id-number', 'id-document'].forEach((id) => setFieldError(id, ''));
+    }
+
+    function clearOtpErrors() {
+      setFieldError('otp', '');
+    }
+
+    function isInstitutionalEmail(email) {
+      return email.toLowerCase().endsWith(institutionalDomain);
+    }
+
+    function updateEmailUI() {
+      const institutional = isInstitutionalEmail(emailInput.value.trim());
+      hintEl.classList.toggle('hidden', !institutional);
+      documentSection.classList.toggle('hidden', institutional);
+    }
+
+    emailInput.addEventListener('input', updateEmailUI);
+    updateEmailUI();
+
+    document.querySelectorAll('[data-toggle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.getAttribute('data-toggle'));
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        btn.textContent = isPassword ? 'Hide' : 'Show';
+      });
+    });
+
+    registerForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearRegisterErrors();
+
+      const name = document.getElementById('name').value.trim();
+      const email = emailInput.value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      const department = document.getElementById('department').value.trim();
+      const role = document.getElementById('role').value;
+      const idNumber = document.getElementById('id-number').value.trim();
+      const institutional = isInstitutionalEmail(email);
+      const needsDocument = !institutional;
+
+      let valid = true;
+
+      if (!name) {
+        setFieldError('name', 'Full name is required.');
+        valid = false;
+      }
+      if (!email) {
+        setFieldError('email', 'Email is required.');
+        valid = false;
+      }
+      if (!password) {
+        setFieldError('password', 'Password is required.');
+        valid = false;
+      }
+      if (!confirmPassword) {
+        setFieldError('confirm-password', 'Please confirm your password.');
+        valid = false;
+      }
+      if (!department) {
+        setFieldError('department', 'Department is required.');
+        valid = false;
+      }
+      if (!role) {
+        setFieldError('role', 'Role is required.');
+        valid = false;
+      }
+      if (!idNumber) {
+        setFieldError('id-number', 'ID number is required.');
+        valid = false;
+      }
+      if (needsDocument && !documentInput.files[0]) {
+        setFieldError('id-document', 'Verification document is required.');
+        valid = false;
+      }
+      if (password && confirmPassword && password !== confirmPassword) {
+        setFieldError('confirm-password', 'Passwords do not match.');
+        valid = false;
+      }
+
+      if (!valid) {
+        return;
+      }
+
+      createAccountBtn.disabled = true;
+      createAccountBtn.textContent = 'Creating account...';
+
+      try {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('department', department);
+        formData.append('role', role);
+        formData.append('id_number', idNumber);
+        if (needsDocument && documentInput.files[0]) {
+          formData.append('id_document', documentInput.files[0]);
+        }
+
+        const response = await fetch(`${API}/auth/register`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Registration failed.');
+        }
+
+        if (data.requires_otp === true) {
+          registeredEmail = email;
+          otpEmail.textContent = registeredEmail;
+          registerState.classList.add('hidden');
+          otpState.classList.remove('hidden');
+          return;
+        }
+
+        if (data.requires_otp === false) {
+          showToast('Registration submitted. Awaiting admin approval.');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
+          return;
+        }
+
+        showToast('Registration submitted. Awaiting admin approval.');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 2000);
+      } catch (error) {
+        showToast(error.message, 'error');
+      } finally {
+        createAccountBtn.disabled = false;
+        createAccountBtn.textContent = 'Create Account';
+      }
+    });
+
+    otpForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearOtpErrors();
+
+      const otp = document.getElementById('otp').value.trim();
+      if (otp.length !== 6) {
+        setFieldError('otp', 'OTP must be exactly 6 characters.');
+        return;
+      }
+
+      verifyBtn.disabled = true;
+      verifyBtn.textContent = 'Verifying...';
+
+      try {
+        const response = await fetch(`${API}/auth/verify-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: registeredEmail, otp })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'OTP verification failed.');
+        }
+
+        showToast('Email verified! Your account is now active.');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 2000);
+      } catch (error) {
+        showToast(error.message, 'error');
+      } finally {
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = 'Verify OTP';
+      }
+    });
+
+    function startResendCountdown(seconds) {
+      countdown = seconds;
+      resendBtn.classList.add('hidden');
+      resendTimer.classList.remove('hidden');
+      resendTimer.textContent = `Resend available in ${countdown}s`;
+
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
+
+      countdownInterval = setInterval(() => {
+        countdown -= 1;
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+          resendTimer.classList.add('hidden');
+          resendBtn.classList.remove('hidden');
+          return;
+        }
+        resendTimer.textContent = `Resend available in ${countdown}s`;
+      }, 1000);
+    }
+
+    resendBtn.addEventListener('click', async () => {
+      try {
+        const response = await fetch(`${API}/auth/resend-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: registeredEmail })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to resend OTP.');
+        }
+
+        showToast('A new OTP has been sent.');
+        startResendCountdown(60);
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    });
+
+    void getToken;
+    void getUser;
+    void setAuth;
+    void clearAuth;
+  </script>
+</body>
+</html>

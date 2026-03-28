@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyBridge - Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              200: '#99f6e4',
+              300: '#5eead4',
+              400: '#2dd4bf',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="font-sans bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white min-h-screen">
+  <header class="sticky top-0 z-40 bg-white/80 dark:bg-gray-950/80 backdrop-blur border-b border-gray-200 dark:border-gray-800">
+    <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="index.html" class="text-xl tracking-tight">
+        <span class="font-bold text-primary-600 dark:text-primary-400">Study</span><span class="font-bold text-gray-800 dark:text-white">Bridge</span>
+      </a>
+      <button onclick="toggleTheme()" class="h-10 w-10 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition" aria-label="Toggle theme">🌗</button>
+    </nav>
+  </header>
+
+  <main class="px-4 py-12 min-h-[calc(100vh-4rem)] flex items-center justify-center">
+    <section class="w-full max-w-md mx-auto rounded-2xl shadow-md p-8 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+      <div class="text-center mb-8">
+        <h1 class="text-2xl tracking-tight">
+          <span class="font-bold text-primary-600 dark:text-primary-400">Study</span><span class="font-bold text-gray-800 dark:text-white">Bridge</span>
+        </h1>
+        <p class="mt-2 text-gray-500 dark:text-gray-400">Welcome back</p>
+      </div>
+
+      <form id="login-form" class="space-y-5" novalidate>
+        <div>
+          <label for="email" class="block text-sm font-medium mb-2">Email</label>
+          <input type="email" id="email" placeholder="you@example.com" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+          <p class="text-red-500 text-sm mt-1 hidden" id="email-error"></p>
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium mb-2">Password</label>
+          <div class="relative">
+            <input type="password" id="password" placeholder="Enter your password" class="w-full px-4 py-2.5 pr-16 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+            <button type="button" id="toggle-password" class="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Show</button>
+          </div>
+          <p class="text-red-500 text-sm mt-1 hidden" id="password-error"></p>
+          <div class="mt-2 text-right">
+            <a href="#" class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400">Forgot password?</a>
+          </div>
+        </div>
+
+        <button id="submit-btn" type="submit" class="w-full px-4 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition">Sign In</button>
+      </form>
+
+      <p class="mt-6 text-sm text-center text-gray-500 dark:text-gray-400">
+        Don't have an account?
+        <a href="register.html" class="text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium">Register</a>
+      </p>
+    </section>
+  </main>
+
+  <div id="toast" class="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium opacity-0 pointer-events-none transition-opacity duration-300 max-w-sm"></div>
+
+  <script>
+    if (localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+  <script>
+    const API = 'http://localhost:3001/api';
+
+    const getToken = () => localStorage.getItem('sb_token');
+    const getUser = () => JSON.parse(localStorage.getItem('sb_user') || 'null');
+    const setAuth = (token, user) => {
+      localStorage.setItem('sb_token', token);
+      localStorage.setItem('sb_user', JSON.stringify(user));
+    };
+    const clearAuth = () => {
+      localStorage.removeItem('sb_token');
+      localStorage.removeItem('sb_user');
+    };
+
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.theme = 'light';
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.theme = 'dark';
+      }
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = toast.className.replace(/bg-\S+/g, '');
+      toast.classList.add(type === 'success' ? 'bg-primary-600' : 'bg-red-500');
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 3500);
+    }
+
+    function setFieldError(fieldId, message) {
+      const errorEl = document.getElementById(`${fieldId}-error`);
+      if (!errorEl) {
+        return;
+      }
+      errorEl.textContent = message;
+      errorEl.classList.toggle('hidden', !message);
+    }
+
+    function clearErrors() {
+      setFieldError('email', '');
+      setFieldError('password', '');
+    }
+
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    togglePasswordBtn.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      togglePasswordBtn.textContent = isPassword ? 'Hide' : 'Show';
+    });
+
+    const form = document.getElementById('login-form');
+    const submitBtn = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearErrors();
+
+      const email = document.getElementById('email').value.trim();
+      const password = passwordInput.value;
+      let valid = true;
+
+      if (!email) {
+        setFieldError('email', 'Email is required.');
+        valid = false;
+      }
+
+      if (!password) {
+        setFieldError('password', 'Password is required.');
+        valid = false;
+      }
+
+      if (!valid) {
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in...';
+
+      try {
+        const response = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Login failed.');
+        }
+
+        setAuth(data.token, data.user);
+
+        if (data.user.status === 'pending') {
+          showToast('Your account is pending admin approval.');
+          return;
+        }
+
+        if (data.user.status === 'rejected') {
+          showToast(`Your account was rejected: ${data.user.rejection_reason || 'No reason provided.'}`, 'error');
+          return;
+        }
+
+        if (data.user.status === 'approved') {
+          if (data.user.role === 'admin') {
+            window.location.href = 'admin-dashboard.html';
+          } else {
+            window.location.href = 'dashboard.html';
+          }
+        }
+      } catch (error) {
+        showToast(error.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
+      }
+    });
+
+    void getToken;
+    void getUser;
+    void clearAuth;
+  </script>
+</body>
+</html>
