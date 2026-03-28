@@ -9,6 +9,7 @@ import RegisterPage   from './pages/RegisterPage';
 import PendingPage    from './pages/PendingPage';
 import RejectedPage   from './pages/RejectedPage';
 import DashboardPage  from './pages/DashboardPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 // Placeholder pages — to be implemented in subsequent prompts
 const Placeholder = ({ name }) => (
@@ -44,7 +45,7 @@ export default function App() {
           <Route path="/settings"    element={<ProtectedRoute><Placeholder name="Settings" /></ProtectedRoute>} />
 
           {/* Admin */}
-          <Route path="/admin"       element={<ProtectedRoute adminOnly><Placeholder name="Admin Dashboard" /></ProtectedRoute>} />
+          <Route path="/admin"       element={<ProtectedRoute adminOnly><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute adminOnly><Placeholder name="Admin Users" /></ProtectedRoute>} />
 
           {/* Fallback */}
