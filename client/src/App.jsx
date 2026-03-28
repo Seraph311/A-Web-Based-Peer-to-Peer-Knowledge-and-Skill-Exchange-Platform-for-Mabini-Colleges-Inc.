@@ -13,6 +13,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import ForumPage from './pages/ForumPage';
 import ForumQuestionPage from './pages/ForumQuestionPage';
+import ForumAskPage from './pages/ForumAskPage';
 
 // Placeholder pages — to be implemented in subsequent prompts
 const Placeholder = ({ name }) => (
@@ -38,7 +39,7 @@ export default function App() {
           {/* Protected — approved users */}
           <Route path="/dashboard"   element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/forum"       element={<ProtectedRoute><ForumPage /></ProtectedRoute>} />
-          <Route path="/forum/ask"   element={<ProtectedRoute><Placeholder name="Ask Question" /></ProtectedRoute>} />
+          <Route path="/forum/ask"   element={<ProtectedRoute><ForumAskPage /></ProtectedRoute>} />
           <Route path="/forum/:id"   element={<ProtectedRoute><ForumQuestionPage /></ProtectedRoute>} />
           <Route path="/sessions"    element={<ProtectedRoute><Placeholder name="Sessions" /></ProtectedRoute>} />
           <Route path="/sessions/:id" element={<ProtectedRoute><Placeholder name="Session Room" /></ProtectedRoute>} />
