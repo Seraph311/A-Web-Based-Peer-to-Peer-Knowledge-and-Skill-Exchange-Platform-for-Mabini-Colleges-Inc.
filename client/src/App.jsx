@@ -8,6 +8,7 @@ import LoginPage      from './pages/LoginPage';
 import RegisterPage   from './pages/RegisterPage';
 import PendingPage    from './pages/PendingPage';
 import RejectedPage   from './pages/RejectedPage';
+import DashboardPage  from './pages/DashboardPage';
 
 // Placeholder pages — to be implemented in subsequent prompts
 const Placeholder = ({ name }) => (
@@ -31,7 +32,7 @@ export default function App() {
           <Route path="/rejected"  element={<RejectedPage />} />
 
           {/* Protected — approved users */}
-          <Route path="/dashboard"   element={<ProtectedRoute><Placeholder name="Dashboard" /></ProtectedRoute>} />
+          <Route path="/dashboard"   element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/forum"       element={<ProtectedRoute><Placeholder name="Forum" /></ProtectedRoute>} />
           <Route path="/forum/ask"   element={<ProtectedRoute><Placeholder name="Ask Question" /></ProtectedRoute>} />
           <Route path="/forum/:id"   element={<ProtectedRoute><Placeholder name="Question Detail" /></ProtectedRoute>} />
