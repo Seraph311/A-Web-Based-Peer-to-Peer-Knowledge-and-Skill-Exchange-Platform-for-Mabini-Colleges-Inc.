@@ -11,6 +11,7 @@ import RejectedPage   from './pages/RejectedPage';
 import DashboardPage  from './pages/DashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminUsersPage from './pages/AdminUsersPage';
+import ForumPage from './pages/ForumPage';
 
 // Placeholder pages — to be implemented in subsequent prompts
 const Placeholder = ({ name }) => (
@@ -35,7 +36,7 @@ export default function App() {
 
           {/* Protected — approved users */}
           <Route path="/dashboard"   element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/forum"       element={<ProtectedRoute><Placeholder name="Forum" /></ProtectedRoute>} />
+          <Route path="/forum"       element={<ProtectedRoute><ForumPage /></ProtectedRoute>} />
           <Route path="/forum/ask"   element={<ProtectedRoute><Placeholder name="Ask Question" /></ProtectedRoute>} />
           <Route path="/forum/:id"   element={<ProtectedRoute><Placeholder name="Question Detail" /></ProtectedRoute>} />
           <Route path="/sessions"    element={<ProtectedRoute><Placeholder name="Sessions" /></ProtectedRoute>} />
