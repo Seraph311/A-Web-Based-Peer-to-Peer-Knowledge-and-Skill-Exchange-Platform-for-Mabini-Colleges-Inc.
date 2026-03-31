@@ -285,7 +285,10 @@ const leaveSession = async (req, res) => {
       userId,
     ]);
 
-    return res.status(200).json({ message: 'Left session successfully.' });
+    return res.status(200).json({
+      message: 'Left session successfully.',
+      session_id: parseInt(req.params.session_id)
+    });
   } catch (err) {
     return res.status(500).json({ message: 'Server error.' });
   }

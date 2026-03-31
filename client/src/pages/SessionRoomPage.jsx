@@ -48,11 +48,13 @@ export default function SessionRoomPage() {
     try {
       const [sessionRes, messagesRes] = await Promise.all([
         api.get(`/sessions/${id}`),
-        api.get(`/messages/${id}`),
+        api.get(`/messages/${id}`).catch(() => null),
       ]);
       setSession(sessionRes.data.session);
       setParticipants(sessionRes.data.participants);
-      setMessages(messagesRes.data.messages);
+      if (messagesRes) {
+        setMessages(messagesRes.data.messages);
+      }
     } catch (error) {
       if (error.response?.status === 404) {
         showToast('Session not found.', 'error');
@@ -74,51 +76,71 @@ export default function SessionRoomPage() {
   }, [fetchSessionData]);
 
   useEffect(() => {
-    if (!session || isClosed || !user) {
-      return;
-    }
+    if (!session?.session_id || isClosed || !user?.user_id) return;
 
-    const socket = io(SOCKET_URL);
+    let isUnmounted = false;
+
+    const socket = io(SOCKET_URL, {
+      transports: ['polling', 'websocket'],
+      upgrade: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+    });
+
     socketRef.current = socket;
 
     socket.on('connect', () => {
+      if (isUnmounted) return;
       setConnected(true);
       socket.emit('join_session', {
-        session_id: parseInt(id, 10),
-        user_id: user.user_id,
+        session_id: session.session_id,
+        user_id: user.user_id
       });
     });
 
     socket.on('disconnect', () => {
+      if (isUnmounted) return;
       setConnected(false);
     });
 
     socket.on('receive_message', (message) => {
-      setMessages((prev) => {
-        const exists = prev.some((m) => m.message_id === message.message_id);
-        if (exists) {
-          return prev;
-        }
+      if (isUnmounted) return;
+      setMessages(prev => {
+        const exists = prev.some(m => m.message_id === message.message_id);
+        if (exists) return prev;
         return [...prev, message];
       });
     });
 
-    socket.on('user_joined', () => {
-      fetchSessionData();
+    socket.on('user_joined', ({ user_id }) => {
+      if (isUnmounted) return;
+      api.get(`/sessions/${session.session_id}`)
+        .then(({ data }) => {
+          if (isUnmounted) return;
+          setParticipants(data.participants);
+          setSession(data.session);
+        })
+        .catch(() => {});
     });
 
-    socket.on('user_left', () => {
-      fetchSessionData();
+    socket.on('user_left', ({ user_id }) => {
+      if (isUnmounted) return;
+      setParticipants(prev =>
+        prev.filter(p => p.user_id !== user_id)
+      );
     });
 
     return () => {
+      isUnmounted = true;
       socket.emit('leave_session', {
-        session_id: parseInt(id, 10),
-        user_id: user.user_id,
+        session_id: session.session_id,
+        user_id: user.user_id
       });
       socket.disconnect();
+      socketRef.current = null;
     };
-  }, [session?.session_id, isClosed, user?.user_id, id, fetchSessionData, session, user]);
+  }, [session?.session_id, isClosed, user?.user_id]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
