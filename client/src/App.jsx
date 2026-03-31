@@ -15,6 +15,7 @@ import ForumPage from './pages/ForumPage';
 import ForumQuestionPage from './pages/ForumQuestionPage';
 import ForumAskPage from './pages/ForumAskPage';
 import SessionsPage from './pages/SessionsPage';
+import SessionRoomPage from './pages/SessionRoomPage';
 
 // Placeholder pages — to be implemented in subsequent prompts
 const Placeholder = ({ name }) => (
@@ -43,7 +44,7 @@ export default function App() {
           <Route path="/forum/ask"   element={<ProtectedRoute><ForumAskPage /></ProtectedRoute>} />
           <Route path="/forum/:id"   element={<ProtectedRoute><ForumQuestionPage /></ProtectedRoute>} />
           <Route path="/sessions"    element={<ProtectedRoute><SessionsPage /></ProtectedRoute>} />
-          <Route path="/sessions/:id" element={<ProtectedRoute><Placeholder name="Session Room" /></ProtectedRoute>} />
+          <Route path="/sessions/:id" element={<ProtectedRoute><SessionRoomPage /></ProtectedRoute>} />
           <Route path="/skills"      element={<ProtectedRoute><Placeholder name="Skills" /></ProtectedRoute>} />
           <Route path="/leaderboard" element={<ProtectedRoute><Placeholder name="Leaderboard" /></ProtectedRoute>} />
           <Route path="/profile/:id" element={<ProtectedRoute><Placeholder name="Profile" /></ProtectedRoute>} />
