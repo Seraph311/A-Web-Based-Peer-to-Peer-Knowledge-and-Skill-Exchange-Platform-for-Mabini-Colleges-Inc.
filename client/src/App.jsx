@@ -19,6 +19,7 @@ import SessionRoomPage from './pages/SessionRoomPage';
 import SkillsPage from './pages/SkillsPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 
 // Placeholder pages — to be implemented in subsequent prompts
 const Placeholder = ({ name }) => (
@@ -51,7 +52,7 @@ export default function App() {
           <Route path="/skills"      element={<ProtectedRoute><SkillsPage /></ProtectedRoute>} />
           <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
           <Route path="/profile/:id" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="/settings"    element={<ProtectedRoute><Placeholder name="Settings" /></ProtectedRoute>} />
+          <Route path="/settings"    element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
 
           {/* Admin */}
           <Route path="/admin"       element={<ProtectedRoute adminOnly><AdminDashboardPage /></ProtectedRoute>} />
