@@ -214,6 +214,12 @@ export default function DashboardPage() {
                     >
                       👤 View My Profile
                     </Link>
+                    <Link
+                      to="/skills"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-50 dark:bg-primary-900/30 hover:bg-primary-100 dark:hover:bg-primary-900/50 text-primary-700 dark:text-primary-300 font-medium text-sm transition"
+                    >
+                      🔍 Find a Peer
+                    </Link>
                   </div>
                 </div>
 

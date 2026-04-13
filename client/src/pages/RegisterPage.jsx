@@ -6,6 +6,17 @@ import Toast, { showToast } from '../components/Toast';
 import api from '../config/api';
 
 const INSTITUTIONAL_DOMAIN = 'mabinicolleges.edu.ph';
+const departments = [
+  'Graduate Program',
+  'College of Education',
+  'College of Business Administration and Accountancy',
+  'College of Computer Studies',
+  'College of Nursing and Midwifery',
+  'College of Criminal Justice Education',
+  'College of Liberal Arts',
+  'Technical Education and Training Department',
+  'High School Department',
+];
 
 export default function RegisterPage() {
   const { user } = useAuth();
@@ -31,7 +42,9 @@ export default function RegisterPage() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [registeredEmail, setRegisteredEmail] = useState('');
 
-  const isInstitutional = form.email.endsWith(`@${INSTITUTIONAL_DOMAIN}`);
+  const isInstitutional =
+    form.email.endsWith(`@${INSTITUTIONAL_DOMAIN}`) &&
+    form.role !== 'instructor';
 
   useEffect(() => {
     if (user?.status === 'approved') {
@@ -66,7 +79,7 @@ export default function RegisterPage() {
     if (form.confirmPassword !== form.password) {
       validationErrors.confirmPassword = 'Passwords do not match.';
     }
-    if (!form.department.trim()) validationErrors.department = 'Department is required.';
+    if (form.department === '') validationErrors.department = 'Please select your department.';
     if (!form.idNumber.trim()) validationErrors.idNumber = 'ID number is required.';
     if (!isInstitutional && !file) validationErrors.file = 'Verification document is required.';
 
@@ -266,14 +279,27 @@ export default function RegisterPage() {
                   >
                     Department
                   </label>
-                  <input
-                    type="text"
+                  <select
                     id="department"
                     value={form.department}
-                    onChange={handleChange}
-                    placeholder="e.g. College of Computer Studies"
+                    onChange={(e) => {
+                      setForm((prev) => ({
+                        ...prev,
+                        department: e.target.value,
+                      }));
+                      if (errors.department) {
+                        setErrors((prev) => ({ ...prev, department: '' }));
+                      }
+                    }}
                     className={`${inputBase} ${errors.department ? 'border-red-500 focus:ring-red-500' : ''}`}
-                  />
+                  >
+                    <option value="">Select your department</option>
+                    {departments.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
                   {errors.department && <p className="text-red-500 text-xs mt-1">{errors.department}</p>}
                 </div>
 
