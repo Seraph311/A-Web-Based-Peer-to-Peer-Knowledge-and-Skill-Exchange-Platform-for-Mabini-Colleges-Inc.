@@ -21,6 +21,8 @@ export default function SessionRoomPage() {
   const [sending, setSending] = useState(false);
   const [ending, setEnding] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingSession, setDeletingSession] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackTarget, setFeedbackTarget] = useState(null);
@@ -188,6 +190,20 @@ export default function SessionRoomPage() {
     }
   };
 
+  async function handleDeleteSession() {
+    setDeletingSession(true);
+    try {
+      await api.delete(`/sessions/${id}`);
+      showToast('Session deleted.');
+      navigate('/sessions');
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to delete session.', 'error');
+    } finally {
+      setDeletingSession(false);
+      setShowDeleteModal(false);
+    }
+  }
+
   const handleOpenFeedback = (participant) => {
     if (isClosed && participant.user_id !== user.user_id) {
       setFeedbackTarget(participant);
@@ -299,6 +315,15 @@ export default function SessionRoomPage() {
                   className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition"
                 >
                   {leaving ? 'Leaving...' : 'Leave'}
+                </button>
+              )}
+
+              {isClosed && (isCreator || user?.role === 'admin') && (
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 transition"
+                >
+                  🗑️ Delete
                 </button>
               )}
             </div>
@@ -484,6 +509,34 @@ export default function SessionRoomPage() {
                 className="px-5 py-2.5 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-60"
               >
                 {ending ? 'Ending...' : 'End Session'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-xl text-center">
+            <div className="text-4xl mb-4">🗑️</div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Delete this session?</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              This will permanently delete the session, all messages, and participant records. This action cannot be
+              undone.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2.5 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteSession}
+                disabled={deletingSession}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-60"
+              >
+                {deletingSession ? 'Deleting...' : 'Delete Session'}
               </button>
             </div>
           </div>

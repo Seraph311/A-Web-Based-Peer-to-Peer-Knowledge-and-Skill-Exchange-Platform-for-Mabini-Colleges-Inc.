@@ -15,6 +15,8 @@ export default function ForumQuestionPage() {
   const [loading, setLoading] = useState(true);
   const [answerContent, setAnswerContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [answerError, setAnswerError] = useState('');
   const answerRef = useRef(null);
 
@@ -74,6 +76,20 @@ export default function ForumQuestionPage() {
     }
   };
 
+  async function handleDeleteQuestion() {
+    setDeleting(true);
+    try {
+      await api.delete(`/forum/questions/${id}`);
+      showToast('Question deleted.');
+      navigate('/forum');
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to delete question.', 'error');
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -132,9 +148,17 @@ export default function ForumQuestionPage() {
 
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
             <span className="text-xs text-gray-400 dark:text-gray-500">Posted by User #{question.user_id}</span>
-            <span className="text-xs text-gray-400 dark:text-gray-500">
-              {new Date(question.created_at).toLocaleString()}
-            </span>
+            <div className="flex items-center gap-2">
+              {(question.user_id === user?.user_id || user?.role === 'admin') && (
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="text-xs px-3 py-1.5 rounded-lg font-medium bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition"
+                >
+                  🗑️ Delete Question
+                </button>
+              )}
+              <span className="text-xs text-gray-400 dark:text-gray-500">{new Date(question.created_at).toLocaleString()}</span>
+            </div>
           </div>
         </div>
 
@@ -170,6 +194,33 @@ export default function ForumQuestionPage() {
               </div>
             </div>
           ))
+        )}
+
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-xl text-center">
+              <div className="text-4xl mb-4">🗑️</div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Delete this question?</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                This will permanently delete the question and all its answers. This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2.5 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteQuestion}
+                  disabled={deleting}
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-60"
+                >
+                  {deleting ? 'Deleting...' : 'Delete Question'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">

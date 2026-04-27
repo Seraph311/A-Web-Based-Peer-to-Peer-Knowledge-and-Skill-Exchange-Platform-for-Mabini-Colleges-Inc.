@@ -106,6 +106,29 @@ const getQuestionById = async (req, res) => {
   }
 };
 
+const deleteQuestion = async (req, res) => {
+  const { question_id } = req.params;
+
+  try {
+    const questionResult = await pool.query('SELECT * FROM forum_questions WHERE question_id = $1', [question_id]);
+
+    if (questionResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Question not found.' });
+    }
+
+    const question = questionResult.rows[0];
+    if (question.user_id !== req.user.user_id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Unauthorized.' });
+    }
+
+    await pool.query('DELETE FROM forum_questions WHERE question_id = $1', [question_id]);
+
+    return res.status(200).json({ message: 'Question deleted successfully.' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 const createAnswer = async (req, res) => {
   const { question_id } = req.params;
   const { content } = req.body;
@@ -194,6 +217,7 @@ module.exports = {
   createQuestion,
   getQuestions,
   getQuestionById,
+  deleteQuestion,
   createAnswer,
   getAnswersByQuestionId,
 };

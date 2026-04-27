@@ -9,6 +9,7 @@ const {
   joinSession,
   leaveSession,
   endSession,
+  deleteSession,
 } = require('../controllers/sessionController');
 
 router.post('/', verifyToken, createSession);
@@ -17,5 +18,6 @@ router.get('/:session_id', getSessionById);
 router.post('/:session_id/join', verifyToken, joinSession);
 router.post('/:session_id/leave', verifyToken, leaveSession);
 router.post('/:session_id/end', verifyToken, endSession);
+router.delete('/:session_id', verifyToken, deleteSession);
 
 module.exports = router;

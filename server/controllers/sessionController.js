@@ -349,6 +349,32 @@ const endSession = async (req, res) => {
   }
 };
 
+const deleteSession = async (req, res) => {
+  const { session_id } = req.params;
+
+  try {
+    const sessionResult = await pool.query('SELECT * FROM sessions WHERE session_id = $1', [session_id]);
+    if (sessionResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Session not found.' });
+    }
+
+    const session = sessionResult.rows[0];
+    if (session.creator_id !== req.user.user_id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Unauthorized.' });
+    }
+
+    if (session.status !== 'closed') {
+      return res.status(400).json({ message: 'Only closed sessions can be deleted.' });
+    }
+
+    await pool.query('DELETE FROM sessions WHERE session_id = $1', [session_id]);
+
+    return res.status(200).json({ message: 'Session deleted successfully.' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 module.exports = {
   createSession,
   getSessions,
@@ -356,4 +382,5 @@ module.exports = {
   joinSession,
   leaveSession,
   endSession,
+  deleteSession,
 };
