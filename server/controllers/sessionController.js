@@ -69,13 +69,18 @@ const createSession = async (req, res) => {
 
 const getSessions = async (req, res) => {
   const { status, session_type, keyword } = req.query;
+  const userId = req.user.user_id;
   const { page, limit, offset } = paginate(req.query);
   const conditions = [];
   const values = [];
 
   if (status) {
-    values.push(status);
-    conditions.push(`s.status = $${values.length}`);
+    if (status === 'open' || status === 'ongoing') {
+      conditions.push(`s.status IN ('open', 'ongoing')`);
+    } else {
+      values.push(status);
+      conditions.push(`s.status = $${values.length}`);
+    }
   }
 
   if (session_type) {
@@ -93,6 +98,10 @@ const getSessions = async (req, res) => {
     whereClause = ` WHERE ${conditions.join(' AND ')}`;
   }
 
+  const userParamIndex = values.length + 1;
+  const limitParamIndex = values.length + 2;
+  const offsetParamIndex = values.length + 3;
+
   const listQuery = `
     SELECT
       s.*,
@@ -100,12 +109,18 @@ const getSessions = async (req, res) => {
         SELECT COUNT(*)::int
         FROM session_participants sp
         WHERE sp.session_id = s.session_id
-      ) AS participant_count
+      ) AS participant_count,
+      EXISTS (
+        SELECT 1
+        FROM session_participants sp_joined
+        WHERE sp_joined.session_id = s.session_id
+          AND sp_joined.user_id = $${userParamIndex}
+      ) AS is_joined
     FROM sessions s
     ${whereClause}
     ORDER BY s.created_at DESC
-    LIMIT $${values.length + 1}
-    OFFSET $${values.length + 2}
+    LIMIT $${limitParamIndex}
+    OFFSET $${offsetParamIndex}
   `;
 
   const countQuery = `
@@ -116,14 +131,19 @@ const getSessions = async (req, res) => {
 
   try {
     const [result, countResult] = await Promise.all([
-      pool.query(listQuery, [...values, limit, offset]),
+      pool.query(listQuery, [...values, userId, limit, offset]),
       pool.query(countQuery, values),
     ]);
 
     const total = countResult.rows[0].total;
+    const sessions = result.rows.map((row) => ({
+      ...row,
+      status: row.status === 'ongoing' ? 'open' : row.status,
+      is_joined: Boolean(row.is_joined),
+    }));
 
     return res.status(200).json({
-      sessions: result.rows,
+      sessions,
       pagination: {
         total,
         page,
@@ -173,8 +193,12 @@ const getSessionById = async (req, res) => {
       [session_id]
     );
 
+    const session = sessionResult.rows[0];
     return res.status(200).json({
-      session: sessionResult.rows[0],
+      session: {
+        ...session,
+        status: session.status === 'ongoing' ? 'open' : session.status,
+      },
       participants: participantsResult.rows,
     });
   } catch (err) {
@@ -230,10 +254,6 @@ const joinSession = async (req, res) => {
       `,
       [session_id, userId]
     );
-
-    if (session.status === 'open') {
-      await client.query(`UPDATE sessions SET status = 'ongoing' WHERE session_id = $1`, [session_id]);
-    }
 
     const pointsResult = await client.query(
       `

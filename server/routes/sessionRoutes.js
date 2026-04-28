@@ -13,7 +13,7 @@ const {
 } = require('../controllers/sessionController');
 
 router.post('/', verifyToken, createSession);
-router.get('/', getSessions);
+router.get('/', verifyToken, getSessions);
 router.get('/:session_id', verifyToken, getSessionById);
 router.post('/:session_id/join', verifyToken, joinSession);
 router.post('/:session_id/leave', verifyToken, leaveSession);

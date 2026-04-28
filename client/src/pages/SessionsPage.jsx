@@ -152,7 +152,6 @@ export default function SessionsPage() {
             >
               <option value="">All</option>
               <option value="open">Open</option>
-              <option value="ongoing">Ongoing</option>
               <option value="closed">Closed</option>
             </select>
           </div>
@@ -222,11 +221,9 @@ export default function SessionsPage() {
 
                       <span
                         className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
-                          s.status === 'open'
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                            : s.status === 'ongoing'
-                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                          s.status === 'closed'
+                            ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                            : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                         }`}
                       >
                         {s.status}
@@ -244,12 +241,12 @@ export default function SessionsPage() {
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                    {s.creator_id === user?.user_id ? (
+                    {s.creator_id === user?.user_id || s.is_joined ? (
                       <Link
                         to={`/sessions/${s.session_id}`}
                         className="w-full inline-flex items-center justify-center py-2 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/50 transition"
                       >
-                        Open My Session →
+                        Open Session →
                       </Link>
                     ) : s.status === 'closed' ? (
                       <button
