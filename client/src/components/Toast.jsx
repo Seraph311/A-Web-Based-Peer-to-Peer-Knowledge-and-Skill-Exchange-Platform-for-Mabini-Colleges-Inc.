@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 let toastFn = null;
 
@@ -8,13 +8,26 @@ export function showToast(message, type = 'success') {
 
 export default function Toast() {
   const [toast, setToast] = useState(null);
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
     toastFn = (message, type) => {
       setToast({ message, type });
-      setTimeout(() => setToast(null), 3500);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        setToast(null);
+        timeoutRef.current = null;
+      }, 3500);
     };
-    return () => { toastFn = null; };
+    return () => {
+      toastFn = null;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
   }, []);
 
   if (!toast) return null;

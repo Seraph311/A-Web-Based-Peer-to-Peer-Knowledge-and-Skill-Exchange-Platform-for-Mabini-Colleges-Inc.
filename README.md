@@ -56,6 +56,16 @@ SUPABASE_BUCKET=id-documents
 
 GMAIL_USER=your_email@gmail.com
 GMAIL_APP_PASSWORD=your_gmail_app_password
+
+# Comma-separated allowlist for API + Socket CORS
+CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+Create/update `client/.env` (or `client/.env.local`) with:
+
+```env
+VITE_API_BASE_URL=http://localhost:3001/api
+VITE_SOCKET_URL=http://localhost:3001
 ```
 
 ## Setup
@@ -119,4 +129,3 @@ npm run dev
 - `npm run build` - production build
 - `npm run preview` - preview built app
 - `npm run lint` - run ESLint
-

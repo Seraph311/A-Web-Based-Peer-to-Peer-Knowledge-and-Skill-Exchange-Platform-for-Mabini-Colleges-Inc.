@@ -146,6 +146,16 @@ const getSessionById = async (req, res) => {
       return res.status(404).json({ message: 'Session not found.' });
     }
 
+    if (req.user.role !== 'admin') {
+      const membershipResult = await pool.query(
+        'SELECT 1 FROM session_participants WHERE session_id = $1 AND user_id = $2',
+        [session_id, req.user.user_id]
+      );
+      if (membershipResult.rows.length === 0) {
+        return res.status(403).json({ message: 'You are not a participant of this session.' });
+      }
+    }
+
     const participantsResult = await pool.query(
       `
         SELECT

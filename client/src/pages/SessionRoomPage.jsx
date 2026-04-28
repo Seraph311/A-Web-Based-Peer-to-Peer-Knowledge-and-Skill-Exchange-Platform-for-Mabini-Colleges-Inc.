@@ -3,10 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Toast, { showToast } from '../components/Toast';
-import api from '../config/api';
+import api, { SOCKET_BASE_URL } from '../config/api';
 import { io } from 'socket.io-client';
-
-const SOCKET_URL = 'http://localhost:3001';
 
 export default function SessionRoomPage() {
   const { id } = useParams();
@@ -81,13 +79,16 @@ export default function SessionRoomPage() {
     if (!session?.session_id || isClosed || !user?.user_id) return;
 
     let isUnmounted = false;
+    const token = localStorage.getItem('sb_token');
+    if (!token) return;
 
-    const socket = io(SOCKET_URL, {
+    const socket = io(SOCKET_BASE_URL, {
       transports: ['polling', 'websocket'],
       upgrade: true,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 2000,
+      auth: { token },
     });
 
     socketRef.current = socket;
@@ -97,13 +98,18 @@ export default function SessionRoomPage() {
       setConnected(true);
       socket.emit('join_session', {
         session_id: session.session_id,
-        user_id: user.user_id
       });
     });
 
     socket.on('disconnect', () => {
       if (isUnmounted) return;
       setConnected(false);
+    });
+
+    socket.on('connect_error', () => {
+      if (isUnmounted) return;
+      setConnected(false);
+      showToast('Real-time connection failed.', 'error');
     });
 
     socket.on('receive_message', (message) => {
@@ -115,7 +121,7 @@ export default function SessionRoomPage() {
       });
     });
 
-    socket.on('user_joined', ({ user_id }) => {
+    socket.on('user_joined', () => {
       if (isUnmounted) return;
       api.get(`/sessions/${session.session_id}`)
         .then(({ data }) => {
@@ -124,6 +130,12 @@ export default function SessionRoomPage() {
           setSession(data.session);
         })
         .catch(() => {});
+    });
+
+    socket.on('socket_error', (payload) => {
+      if (isUnmounted) return;
+      const message = payload?.message || 'Real-time connection issue.';
+      showToast(message, 'error');
     });
 
     socket.on('user_left', ({ user_id }) => {
@@ -137,7 +149,6 @@ export default function SessionRoomPage() {
       isUnmounted = true;
       socket.emit('leave_session', {
         session_id: session.session_id,
-        user_id: user.user_id
       });
       socket.disconnect();
       socketRef.current = null;
@@ -155,7 +166,6 @@ export default function SessionRoomPage() {
     setSending(true);
     socketRef.current.emit('send_message', {
       session_id: parseInt(id, 10),
-      sender_id: user.user_id,
       content,
     });
     setMessageInput('');
@@ -550,6 +560,7 @@ export default function SessionRoomPage() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Rate {feedbackTarget?.name}</h3>
               <button
                 onClick={() => setShowFeedbackModal(false)}
+                aria-label="Close feedback modal"
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl"
               >
                 ×

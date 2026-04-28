@@ -11,6 +11,8 @@ const sanitizeString = (value) => {
 
 const skippedFields = new Set([
   'password',
+  'current_password',
+  'new_password',
   'is_available',
   'rating',
   'content_id',

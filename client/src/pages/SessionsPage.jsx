@@ -305,7 +305,9 @@ export default function SessionsPage() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create Study Session</h2>
               <button
+                type="button"
                 onClick={() => setShowCreateModal(false)}
+                aria-label="Close create session modal"
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none"
               >
                 ×

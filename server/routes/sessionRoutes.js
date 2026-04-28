@@ -14,7 +14,7 @@ const {
 
 router.post('/', verifyToken, createSession);
 router.get('/', getSessions);
-router.get('/:session_id', getSessionById);
+router.get('/:session_id', verifyToken, getSessionById);
 router.post('/:session_id/join', verifyToken, joinSession);
 router.post('/:session_id/leave', verifyToken, leaveSession);
 router.post('/:session_id/end', verifyToken, endSession);

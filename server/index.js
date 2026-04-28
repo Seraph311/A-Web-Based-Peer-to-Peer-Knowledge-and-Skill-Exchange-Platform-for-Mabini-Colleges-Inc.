@@ -19,15 +19,36 @@ const { generalLimiter, authLimiter, reportLimiter } = require('./middleware/rat
 
 const app = express();
 const server = http.createServer(app);
+const fallbackOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+  : fallbackOrigins;
+
+const isOriginAllowed = (origin) => !origin || allowedOrigins.includes(origin);
+const corsOriginHandler = (origin, callback) => {
+  if (isOriginAllowed(origin)) {
+    return callback(null, true);
+  }
+  return callback(new Error('Origin not allowed by CORS.'));
+};
+
+const corsOptions = {
+  origin: corsOriginHandler,
+  credentials: true,
+};
+
 const io = new Server(server, {
-  cors: { origin: '*' },
+  cors: {
+    origin: corsOriginHandler,
+    credentials: true,
+  },
   transports: ['polling', 'websocket'],
   allowUpgrades: true,
   pingTimeout: 60000,
   pingInterval: 25000,
 });
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(sanitizeBody);
 app.use(generalLimiter);

@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const bcrypt = require('bcrypt');
 const paginate = require('../utils/paginate');
 
 const getUserProfileData = async (userId, includeSensitive = false) => {
@@ -235,10 +236,46 @@ const updateMyAvailability = async (req, res) => {
   }
 };
 
+const updateMyPassword = async (req, res) => {
+  const { current_password, new_password } = req.body;
+
+  if (!current_password || !new_password) {
+    return res.status(400).json({ message: 'current_password and new_password are required.' });
+  }
+
+  if (typeof new_password !== 'string' || new_password.length < 8) {
+    return res.status(400).json({ message: 'New password must be at least 8 characters.' });
+  }
+
+  if (current_password === new_password) {
+    return res.status(400).json({ message: 'New password must be different from current password.' });
+  }
+
+  try {
+    const userResult = await pool.query('SELECT password FROM users WHERE user_id = $1', [req.user.user_id]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const passwordMatches = await bcrypt.compare(current_password, userResult.rows[0].password);
+    if (!passwordMatches) {
+      return res.status(401).json({ message: 'Current password is incorrect.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+    await pool.query('UPDATE users SET password = $1 WHERE user_id = $2', [hashedPassword, req.user.user_id]);
+
+    return res.status(200).json({ message: 'Password changed successfully.' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 module.exports = {
   getLeaderboard,
   getUserProfile,
   getMyProfile,
   updateMyProfile,
   updateMyAvailability,
+  updateMyPassword,
 };

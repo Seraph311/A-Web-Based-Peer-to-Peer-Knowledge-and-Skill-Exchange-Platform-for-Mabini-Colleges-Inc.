@@ -147,7 +147,12 @@ export default function ForumPage() {
             {filters.keyword && (
               <span className="px-2 py-1 rounded-full text-xs bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 flex items-center gap-1">
                 &quot;{filters.keyword}&quot;
-                <button onClick={handleClearSearch} className="hover:text-primary-900 ml-1">
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  aria-label="Clear keyword filter"
+                  className="hover:text-primary-900 ml-1"
+                >
                   ×
                 </button>
               </span>
@@ -155,7 +160,12 @@ export default function ForumPage() {
             {filters.department_tag && (
               <span className="px-2 py-1 rounded-full text-xs bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 flex items-center gap-1">
                 {filters.department_tag}
-                <button onClick={() => handleDepartmentFilter('')} className="hover:text-primary-900 ml-1">
+                <button
+                  type="button"
+                  onClick={() => handleDepartmentFilter('')}
+                  aria-label="Clear department filter"
+                  className="hover:text-primary-900 ml-1"
+                >
                   ×
                 </button>
               </span>

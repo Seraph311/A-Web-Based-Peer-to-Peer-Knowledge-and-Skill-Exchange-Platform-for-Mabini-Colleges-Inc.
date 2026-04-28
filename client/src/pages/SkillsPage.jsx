@@ -347,7 +347,14 @@ export default function SkillsPage() {
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-xl">
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Add New Skill</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl">×</button>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                aria-label="Close add skill modal"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl"
+              >
+                ×
+              </button>
             </div>
 
             <form noValidate onSubmit={handleAddSkill}>
@@ -411,7 +418,14 @@ export default function SkillsPage() {
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-xl">
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Skill</h2>
-              <button onClick={() => setEditTarget(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl">×</button>
+              <button
+                type="button"
+                onClick={() => setEditTarget(null)}
+                aria-label="Close edit skill modal"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl"
+              >
+                ×
+              </button>
             </div>
 
             <form noValidate onSubmit={handleEditSkill}>
