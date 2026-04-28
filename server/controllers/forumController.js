@@ -1,6 +1,11 @@
 const pool = require('../config/db');
 const paginate = require('../utils/paginate');
 
+const ensureForumEditColumns = async () => {
+  await pool.query('ALTER TABLE forum_questions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP');
+  await pool.query('ALTER TABLE forum_answers ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP');
+};
+
 const createQuestion = async (req, res) => {
   const { title, content, topic_tag, department_tag } = req.body;
 
@@ -129,6 +134,89 @@ const deleteQuestion = async (req, res) => {
   }
 };
 
+const updateQuestion = async (req, res) => {
+  const { question_id } = req.params;
+  const { title, content, topic_tag, department_tag } = req.body;
+  const hasTitle = Object.prototype.hasOwnProperty.call(req.body, 'title');
+  const hasContent = Object.prototype.hasOwnProperty.call(req.body, 'content');
+  const hasTopicTag = Object.prototype.hasOwnProperty.call(req.body, 'topic_tag');
+  const hasDepartmentTag = Object.prototype.hasOwnProperty.call(req.body, 'department_tag');
+
+  if (!hasTitle && !hasContent && !hasTopicTag && !hasDepartmentTag) {
+    return res.status(400).json({ message: 'No updates provided.' });
+  }
+
+  try {
+    await ensureForumEditColumns();
+    const questionResult = await pool.query('SELECT user_id FROM forum_questions WHERE question_id = $1', [question_id]);
+
+    if (questionResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Question not found.' });
+    }
+
+    if (questionResult.rows[0].user_id !== req.user.user_id) {
+      return res.status(403).json({ message: 'Unauthorized.' });
+    }
+
+    const updates = [];
+    const values = [];
+
+    if (hasTitle) {
+      if (typeof title !== 'string' || !title.trim()) {
+        return res.status(400).json({ message: 'Title cannot be empty.' });
+      }
+      values.push(title.trim());
+      updates.push(`title = $${values.length}`);
+    }
+
+    if (hasContent) {
+      if (typeof content !== 'string' || !content.trim()) {
+        return res.status(400).json({ message: 'Content cannot be empty.' });
+      }
+      values.push(content.trim());
+      updates.push(`content = $${values.length}`);
+    }
+
+    if (hasTopicTag) {
+      if (topic_tag !== null && typeof topic_tag !== 'string') {
+        return res.status(400).json({ message: 'Invalid topic tag.' });
+      }
+      const normalized = typeof topic_tag === 'string' ? topic_tag.trim() : null;
+      values.push(normalized || null);
+      updates.push(`topic_tag = $${values.length}`);
+    }
+
+    if (hasDepartmentTag) {
+      if (department_tag !== null && typeof department_tag !== 'string') {
+        return res.status(400).json({ message: 'Invalid department tag.' });
+      }
+      const normalized = typeof department_tag === 'string' ? department_tag.trim() : null;
+      values.push(normalized || null);
+      updates.push(`department_tag = $${values.length}`);
+    }
+
+    updates.push('updated_at = NOW()');
+    values.push(question_id);
+
+    const updateResult = await pool.query(
+      `
+        UPDATE forum_questions
+        SET ${updates.join(', ')}
+        WHERE question_id = $${values.length}
+        RETURNING question_id, user_id, title, content, topic_tag, department_tag, created_at, updated_at
+      `,
+      values
+    );
+
+    return res.status(200).json({
+      message: 'Question updated successfully.',
+      question: updateResult.rows[0],
+    });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 const createAnswer = async (req, res) => {
   const { question_id } = req.params;
   const { content } = req.body;
@@ -213,11 +301,58 @@ const getAnswersByQuestionId = async (req, res) => {
   }
 };
 
+const updateAnswer = async (req, res) => {
+  const { answer_id } = req.params;
+  const { content } = req.body;
+  const hasContent = Object.prototype.hasOwnProperty.call(req.body, 'content');
+
+  if (!hasContent) {
+    return res.status(400).json({ message: 'Content is required.' });
+  }
+
+  if (typeof content !== 'string' || !content.trim()) {
+    return res.status(400).json({ message: 'Content cannot be empty.' });
+  }
+
+  try {
+    await ensureForumEditColumns();
+    const answerResult = await pool.query('SELECT user_id FROM forum_answers WHERE answer_id = $1', [answer_id]);
+
+    if (answerResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Answer not found.' });
+    }
+
+    if (answerResult.rows[0].user_id !== req.user.user_id) {
+      return res.status(403).json({ message: 'Unauthorized.' });
+    }
+
+    const updateResult = await pool.query(
+      `
+        UPDATE forum_answers
+        SET content = $1,
+            updated_at = NOW()
+        WHERE answer_id = $2
+        RETURNING answer_id, question_id, user_id, content, created_at, updated_at
+      `,
+      [content.trim(), answer_id]
+    );
+
+    return res.status(200).json({
+      message: 'Answer updated successfully.',
+      answer: updateResult.rows[0],
+    });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 module.exports = {
   createQuestion,
   getQuestions,
   getQuestionById,
   deleteQuestion,
+  updateQuestion,
   createAnswer,
   getAnswersByQuestionId,
+  updateAnswer,
 };

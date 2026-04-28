@@ -31,7 +31,8 @@ CREATE TABLE forum_questions (
     content TEXT NOT NULL,
     topic_tag VARCHAR(255),
     department_tag VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
 );
 
 CREATE TABLE forum_answers (
@@ -39,7 +40,8 @@ CREATE TABLE forum_answers (
     question_id INT REFERENCES forum_questions(question_id) ON DELETE CASCADE,
     user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
 );
 
 CREATE TABLE sessions (
