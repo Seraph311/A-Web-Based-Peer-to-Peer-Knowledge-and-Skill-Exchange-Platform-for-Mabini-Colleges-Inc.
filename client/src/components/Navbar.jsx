@@ -59,6 +59,9 @@ export default function Navbar() {
     navigate('/');
   };
 
+  const isApprovedUser = Boolean(token && user?.status === 'approved');
+  const showSkillSearch = isApprovedUser && user?.role !== 'admin';
+
   return (
     <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-950/80
       backdrop-blur border-b border-gray-200 dark:border-gray-800">
@@ -74,14 +77,10 @@ export default function Navbar() {
           <span className="text-gray-800 dark:text-white">Bridge</span>
         </Link>
 
-        {/* Nav links — shown only to approved logged in users */}
-        {token && user?.status === 'approved' && user?.role !== 'admin' && (
+        {/* Nav links — shown to approved logged in users (including admin) */}
+        {isApprovedUser && (
           <div className="hidden md:flex items-center gap-6 text-sm
             font-medium text-gray-600 dark:text-gray-300">
-            <Link to="/dashboard"
-              className="hover:text-primary-600 dark:hover:text-primary-400 transition">
-              Dashboard
-            </Link>
             <Link to="/forum"
               className="hover:text-primary-600 dark:hover:text-primary-400 transition">
               Forum
@@ -97,7 +96,7 @@ export default function Navbar() {
           </div>
         )}
 
-        {token && user?.status === 'approved' && user?.role !== 'admin' && (
+        {showSkillSearch && (
           <div ref={searchRef} className="relative hidden md:block w-64">
             <form onSubmit={handleSkillSearch} className="flex items-center">
               <div className="relative w-full">
