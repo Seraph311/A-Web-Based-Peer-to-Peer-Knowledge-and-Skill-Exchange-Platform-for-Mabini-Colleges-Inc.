@@ -467,14 +467,20 @@ export default function SessionRoomPage() {
                 className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0"
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-xs font-bold text-primary-700 dark:text-primary-300 shrink-0">
+                  <Link
+                    to={`/profile/${p.user_id}`}
+                    className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-xs font-bold text-primary-700 dark:text-primary-300 shrink-0 hover:bg-primary-200 dark:hover:bg-primary-800 transition"
+                  >
                     {(p.name || 'U').charAt(0).toUpperCase()}
-                  </div>
+                  </Link>
                   <div>
-                    <p className="text-xs font-medium text-gray-900 dark:text-white flex items-center gap-1">
+                    <Link
+                      to={`/profile/${p.user_id}`}
+                      className="text-xs font-medium text-gray-900 dark:text-white flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400 transition"
+                    >
                       {p.name}
                       {p.user_id === user?.user_id && <span className="text-primary-500">(You)</span>}
-                    </p>
+                    </Link>
                     <p className="text-xs text-gray-400 dark:text-gray-500">
                       {p.participant_role === 'creator' ? '👑 Creator' : '👤 Participant'}
                     </p>
