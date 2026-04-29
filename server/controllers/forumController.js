@@ -271,13 +271,16 @@ const getAnswersByQuestionId = async (req, res) => {
 
     const result = await pool.query(
       `SELECT fa.*,
-         COALESCE(
-           (SELECT vote_type FROM answer_votes
-            WHERE answer_id = fa.answer_id AND user_id = $2), null
-         ) AS user_vote
-       FROM forum_answers fa
-       WHERE fa.question_id = $1
-       ORDER BY fa.created_at ASC`,
+          u.name AS answerer_name,
+          u.badge_level AS answerer_badge,
+          COALESCE(
+            (SELECT vote_type FROM answer_votes
+             WHERE answer_id = fa.answer_id AND user_id = $2), null
+          ) AS user_vote
+        FROM forum_answers fa
+        JOIN users u ON u.user_id = fa.user_id
+        WHERE fa.question_id = $1
+        ORDER BY fa.created_at ASC`,
       [question_id, userId]
     );
 

@@ -580,10 +580,18 @@ export default function ForumQuestionPage() {
 
               <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-xs font-bold text-primary-700 dark:text-primary-300">
-                    {a.user_id}
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">User #{a.user_id}</span>
+                  <Link
+                    to={`/profile/${a.user_id}`}
+                    className="w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-xs font-bold text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800 transition"
+                  >
+                    {a.answerer_badge === 'Gold' ? '🥇' : a.answerer_badge === 'Silver' ? '🥈' : a.answerer_badge === 'Bronze' ? '🥉' : '🎓'}
+                  </Link>
+                  <Link
+                    to={`/profile/${a.user_id}`}
+                    className="text-xs font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition"
+                  >
+                    {a.answerer_name}
+                  </Link>
                 </div>
                 <div className="flex items-center gap-2">
                   {editingAnswerId !== a.answer_id && a.user_id === user?.user_id && (
