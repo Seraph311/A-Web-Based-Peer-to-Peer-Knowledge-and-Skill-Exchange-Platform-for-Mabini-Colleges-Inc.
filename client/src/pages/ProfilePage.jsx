@@ -17,6 +17,9 @@ export default function ProfilePage() {
   const [feedbackPagination, setFeedbackPagination] = useState(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackPage, setFeedbackPage] = useState(1);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackForm, setFeedbackForm] = useState({ rating: 0, comment: '' });
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   const isOwnProfile = user?.user_id === parseInt(id, 10);
 
@@ -39,6 +42,33 @@ export default function ProfilePage() {
       showToast('Failed to load feedback.', 'error');
     } finally {
       setFeedbackLoading(false);
+    }
+  };
+
+  const handleSubmitFeedback = async () => {
+    if (feedbackForm.rating === 0) {
+      showToast('Please select a rating.', 'error');
+      return;
+    }
+
+    setSubmittingFeedback(true);
+    try {
+      await api.post('/feedback', {
+        reviewed_user_id: parseInt(id, 10),
+        rating: feedbackForm.rating,
+        comment: feedbackForm.comment.trim() || undefined,
+        feedback_type: 'direct',
+      });
+      showToast('Feedback submitted successfully!', 'success');
+      setShowFeedbackModal(false);
+      setFeedbackForm({ rating: 0, comment: '' });
+      if (activeTab === 'overview') {
+        setActiveTab('feedback');
+      }
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to submit feedback.', 'error');
+    } finally {
+      setSubmittingFeedback(false);
     }
   };
 
@@ -171,12 +201,23 @@ export default function ProfilePage() {
                     </Link>
                   </>
                 ) : (
-                  <Link
-                    to="/sessions"
-                    className="px-4 py-2 rounded-lg text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition"
-                  >
-                    Browse Sessions
-                  </Link>
+                  <>
+                    <Link
+                      to="/sessions"
+                      className="px-4 py-2 rounded-lg text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition"
+                    >
+                      Browse Sessions
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setFeedbackForm({ rating: 0, comment: '' });
+                        setShowFeedbackModal(true);
+                      }}
+                      className="px-4 py-2 rounded-lg text-sm font-medium bg-yellow-500 hover:bg-yellow-600 text-white transition"
+                    >
+                      Leave Feedback
+                    </button>
+                  </>
                 )}
 
                 <p className="text-xs text-gray-400 dark:text-gray-500 ml-auto self-center">
@@ -414,6 +455,74 @@ export default function ProfilePage() {
           </>
         )}
       </div>
+
+      {showFeedbackModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Rate {profile?.name}</h3>
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                aria-label="Close feedback modal"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="flex gap-2 justify-center my-6">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setFeedbackForm((prev) => ({ ...prev, rating: star }))}
+                  className="text-3xl transition hover:scale-110"
+                >
+                  {star <= feedbackForm.rating ? '⭐' : '☆'}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {feedbackForm.rating === 0
+                ? 'Select a rating'
+                : feedbackForm.rating === 1
+                  ? 'Poor'
+                  : feedbackForm.rating === 2
+                    ? 'Fair'
+                    : feedbackForm.rating === 3
+                      ? 'Good'
+                      : feedbackForm.rating === 4
+                        ? 'Very Good'
+                        : 'Excellent'}
+            </p>
+
+            <textarea
+              placeholder="Leave a comment (optional)"
+              rows={3}
+              value={feedbackForm.comment}
+              onChange={(e) => setFeedbackForm((prev) => ({ ...prev, comment: e.target.value }))}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition resize-none"
+            />
+
+            <div className="flex gap-3 justify-end mt-4">
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                className="px-4 py-2.5 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitFeedback}
+                disabled={submittingFeedback || feedbackForm.rating === 0}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-60"
+              >
+                {submittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

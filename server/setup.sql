@@ -87,9 +87,11 @@ CREATE TABLE feedback (
     session_id INT REFERENCES sessions(session_id) ON DELETE CASCADE,
     reviewer_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     reviewed_user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    feedback_type VARCHAR(20) DEFAULT 'session',
     rating INT CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CHECK (feedback_type IN ('session', 'direct'))
 );
 
 CREATE TABLE reports (

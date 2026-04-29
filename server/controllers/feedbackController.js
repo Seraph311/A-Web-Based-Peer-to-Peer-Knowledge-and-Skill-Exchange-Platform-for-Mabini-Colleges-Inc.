@@ -9,92 +9,112 @@ const getBadgeLevel = (points) => {
 };
 
 const createFeedback = async (req, res) => {
-  const { session_id, reviewed_user_id, rating, comment } = req.body;
+  const { session_id, reviewed_user_id, rating, comment, feedback_type } = req.body;
   const reviewerId = req.user.user_id;
+  const type = feedback_type || 'session';
 
-  if (!session_id || !reviewed_user_id || rating === undefined) {
-    return res.status(400).json({ message: 'session_id, reviewed_user_id, and rating are required.' });
+  if (!reviewed_user_id || rating === undefined) {
+    return res.status(400).json({ message: 'reviewed_user_id and rating are required.' });
   }
 
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return res.status(400).json({ message: 'Rating must be an integer between 1 and 5.' });
   }
 
+  if (!['session', 'direct'].includes(type)) {
+    return res.status(400).json({ message: 'feedback_type must be "session" or "direct".' });
+  }
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
-    const sessionResult = await client.query('SELECT status FROM sessions WHERE session_id = $1', [session_id]);
-    if (sessionResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ message: 'Session not found.' });
-    }
-
-    if (sessionResult.rows[0].status !== 'closed') {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ message: 'Feedback can only be submitted for closed sessions.' });
-    }
-
-    const reviewerParticipantResult = await client.query(
-      'SELECT 1 FROM session_participants WHERE session_id = $1 AND user_id = $2',
-      [session_id, reviewerId]
-    );
-    if (reviewerParticipantResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(403).json({ message: 'You were not a participant of this session.' });
-    }
-
-    const reviewedParticipantResult = await client.query(
-      'SELECT 1 FROM session_participants WHERE session_id = $1 AND user_id = $2',
-      [session_id, reviewed_user_id]
-    );
-    if (reviewedParticipantResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ message: 'Reviewed user was not a participant of this session.' });
-    }
 
     if (reviewerId === reviewed_user_id) {
       await client.query('ROLLBACK');
       return res.status(400).json({ message: 'You cannot review yourself.' });
     }
 
+    if (type === 'session') {
+      if (!session_id) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: 'session_id is required for session feedback.' });
+      }
+
+      const sessionResult = await client.query('SELECT status FROM sessions WHERE session_id = $1', [session_id]);
+      if (sessionResult.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ message: 'Session not found.' });
+      }
+
+      if (sessionResult.rows[0].status !== 'closed') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: 'Feedback can only be submitted for closed sessions.' });
+      }
+
+      const reviewerParticipantResult = await client.query(
+        'SELECT 1 FROM session_participants WHERE session_id = $1 AND user_id = $2',
+        [session_id, reviewerId]
+      );
+      if (reviewerParticipantResult.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(403).json({ message: 'You were not a participant of this session.' });
+      }
+
+      const reviewedParticipantResult = await client.query(
+        'SELECT 1 FROM session_participants WHERE session_id = $1 AND user_id = $2',
+        [session_id, reviewed_user_id]
+      );
+      if (reviewedParticipantResult.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: 'Reviewed user was not a participant of this session.' });
+      }
+    } else {
+      const userResult = await client.query('SELECT user_id FROM users WHERE user_id = $1', [reviewed_user_id]);
+      if (userResult.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ message: 'User not found.' });
+      }
+    }
+
     const duplicateResult = await client.query(
       `
         SELECT 1
         FROM feedback
-        WHERE session_id = $1 AND reviewer_id = $2 AND reviewed_user_id = $3
+        WHERE feedback_type = $1 AND reviewer_id = $2 AND reviewed_user_id = $3
       `,
-      [session_id, reviewerId, reviewed_user_id]
+      [type, reviewerId, reviewed_user_id]
     );
     if (duplicateResult.rows.length > 0) {
       await client.query('ROLLBACK');
       return res
         .status(409)
-        .json({ message: 'You have already submitted feedback for this user in this session.' });
+        .json({ message: `You have already submitted ${type} feedback for this user.` });
     }
 
     const feedbackResult = await client.query(
       `
-        INSERT INTO feedback (session_id, reviewer_id, reviewed_user_id, rating, comment)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING feedback_id, session_id, reviewer_id, reviewed_user_id, rating, comment, created_at
+        INSERT INTO feedback (session_id, reviewer_id, reviewed_user_id, feedback_type, rating, comment)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING feedback_id, session_id, reviewer_id, reviewed_user_id, feedback_type, rating, comment, created_at
       `,
-      [session_id, reviewerId, reviewed_user_id, rating, comment || null]
+      [session_id || null, reviewerId, reviewed_user_id, type, rating, comment || null]
     );
 
-    const pointsResult = await client.query(
-      `
-        UPDATE users
-        SET contribution_points = contribution_points + 3
-        WHERE user_id = $1
-        RETURNING contribution_points
-      `,
-      [reviewed_user_id]
-    );
+    if (type === 'session') {
+      const pointsResult = await client.query(
+        `
+          UPDATE users
+          SET contribution_points = contribution_points + 3
+          WHERE user_id = $1
+          RETURNING contribution_points
+        `,
+        [reviewed_user_id]
+      );
 
-    const points = pointsResult.rows[0].contribution_points;
-    const badgeLevel = getBadgeLevel(points);
-    await client.query('UPDATE users SET badge_level = $1 WHERE user_id = $2', [badgeLevel, reviewed_user_id]);
+      const points = pointsResult.rows[0].contribution_points;
+      const badgeLevel = getBadgeLevel(points);
+      await client.query('UPDATE users SET badge_level = $1 WHERE user_id = $2', [badgeLevel, reviewed_user_id]);
+    }
 
     await client.query('COMMIT');
 
@@ -172,6 +192,7 @@ const getFeedbackByUser = async (req, res) => {
           SELECT
             f.feedback_id,
             f.session_id,
+            f.feedback_type,
             f.reviewer_id,
             u.name AS reviewer_name,
             f.rating,
