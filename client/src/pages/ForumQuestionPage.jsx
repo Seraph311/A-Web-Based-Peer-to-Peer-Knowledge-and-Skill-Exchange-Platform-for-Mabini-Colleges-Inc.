@@ -24,6 +24,8 @@ export default function ForumQuestionPage() {
 
   const [question, setQuestion] = useState(null);
   const [answers, setAnswers] = useState([]);
+  const [answerVotes, setAnswerVotes] = useState({});
+  const [votingOn, setVotingOn] = useState({});
   const [loading, setLoading] = useState(true);
   const [answerContent, setAnswerContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -53,7 +55,19 @@ export default function ForumQuestionPage() {
           api.get(`/forum/questions/${id}/answers`),
         ]);
         setQuestion(questionRes.data.question);
-        setAnswers(answersRes.data.answers);
+        const sortedAnswers = [...answersRes.data.answers].sort(
+          (a, b) => (b.upvotes || 0) - (b.downvotes || 0) - ((a.upvotes || 0) - (a.downvotes || 0))
+        );
+        setAnswers(sortedAnswers);
+        const votesMap = {};
+        sortedAnswers.forEach((answer) => {
+          votesMap[answer.answer_id] = {
+            upvotes: answer.upvotes || 0,
+            downvotes: answer.downvotes || 0,
+            user_vote: answer.user_vote || null,
+          };
+        });
+        setAnswerVotes(votesMap);
       } catch (error) {
         if (error.response?.status === 404) {
           showToast('Question not found.', 'error');
@@ -159,13 +173,51 @@ export default function ForumQuestionPage() {
       const { data } = await api.put(`/forum/answers/${answerId}`, {
         content: editingAnswerContent.trim(),
       });
-      setAnswers((prev) => prev.map((a) => (a.answer_id === answerId ? data.answer : a)));
+      setAnswers((prev) => prev.map((a) => (a.answer_id === answerId ? { ...a, ...data.answer } : a)));
       handleCancelEditAnswer();
       showToast('Answer updated.');
     } catch (error) {
       showToast(error.response?.data?.message || 'Failed to update answer.', 'error');
     } finally {
       setSavingAnswerId(null);
+    }
+  };
+
+  const handleVote = async (answerId, voteType) => {
+    if (votingOn[answerId]) {
+      return;
+    }
+
+    setVotingOn((prev) => ({ ...prev, [answerId]: true }));
+    try {
+      const { data } = await api.post(`/forum/answers/${answerId}/vote`, {
+        vote_type: voteType,
+      });
+      setAnswerVotes((prev) => ({
+        ...prev,
+        [answerId]: {
+          upvotes: data.answer.upvotes,
+          downvotes: data.answer.downvotes,
+          user_vote: data.user_vote,
+        },
+      }));
+      setAnswers((prev) => {
+        const updated = prev.map((answer) =>
+          answer.answer_id === answerId
+            ? {
+                ...answer,
+                upvotes: data.answer.upvotes,
+                downvotes: data.answer.downvotes,
+                user_vote: data.user_vote,
+              }
+            : answer
+        );
+        return updated.sort((a, b) => (b.upvotes || 0) - (b.downvotes || 0) - ((a.upvotes || 0) - (a.downvotes || 0)));
+      });
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Vote failed.', 'error');
+    } finally {
+      setVotingOn((prev) => ({ ...prev, [answerId]: false }));
     }
   };
 
@@ -189,7 +241,21 @@ export default function ForumQuestionPage() {
       const { data } = await api.post(`/forum/questions/${id}/answers`, {
         content: answerContent,
       });
-      setAnswers((prev) => [...prev, data.answer]);
+      const newAnswer = {
+        ...data.answer,
+        upvotes: 0,
+        downvotes: 0,
+        user_vote: null,
+      };
+      setAnswers((prev) => [...prev, newAnswer]);
+      setAnswerVotes((prev) => ({
+        ...prev,
+        [data.answer.answer_id]: {
+          upvotes: 0,
+          downvotes: 0,
+          user_vote: null,
+        },
+      }));
       setAnswerContent('');
       setAnswerError('');
       showToast('Answer posted successfully.');
@@ -457,6 +523,60 @@ export default function ForumQuestionPage() {
                   {a.content}
                 </p>
               )}
+
+              {(() => {
+                const votes =
+                  answerVotes[a.answer_id] ||
+                  {
+                    upvotes: a.upvotes || 0,
+                    downvotes: a.downvotes || 0,
+                    user_vote: a.user_vote || null,
+                  };
+                const netVotes = votes.upvotes - votes.downvotes;
+
+                return (
+                  <div className="flex items-center gap-2 mb-3">
+                    <button
+                      onClick={() => handleVote(a.answer_id, 'upvote')}
+                      disabled={votingOn[a.answer_id] || a.user_id === user?.user_id}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                        votes.user_vote === 'upvote'
+                          ? 'bg-primary-600 text-white'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400'
+                      }`}
+                    >
+                      <span>▲</span>
+                      <span>{votes.upvotes}</span>
+                    </button>
+                    <span
+                      className={`text-sm font-bold min-w-[2rem] text-center ${
+                        netVotes > 0
+                          ? 'text-primary-600 dark:text-primary-400'
+                          : netVotes < 0
+                          ? 'text-red-500 dark:text-red-400'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}
+                    >
+                      {netVotes > 0 ? `+${netVotes}` : netVotes}
+                    </span>
+                    <button
+                      onClick={() => handleVote(a.answer_id, 'downvote')}
+                      disabled={votingOn[a.answer_id] || a.user_id === user?.user_id}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                        votes.user_vote === 'downvote'
+                          ? 'bg-red-500 text-white'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 dark:hover:text-red-400'
+                      }`}
+                    >
+                      <span>▼</span>
+                      <span>{votes.downvotes}</span>
+                    </button>
+                    {a.user_id === user?.user_id && (
+                      <span className="text-xs text-gray-400 dark:text-gray-500 ml-2 italic">Your answer</span>
+                    )}
+                  </div>
+                );
+              })()}
 
               <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-2">

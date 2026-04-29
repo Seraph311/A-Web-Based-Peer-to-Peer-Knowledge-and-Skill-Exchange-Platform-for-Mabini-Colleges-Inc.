@@ -240,7 +240,7 @@ const createAnswer = async (req, res) => {
       `
         INSERT INTO forum_answers (question_id, user_id, content)
         VALUES ($1, $2, $3)
-        RETURNING answer_id, question_id, user_id, content, created_at
+        RETURNING answer_id, question_id, user_id, content, upvotes, downvotes, created_at
       `,
       [question_id, req.user.user_id, content]
     );
@@ -283,6 +283,7 @@ const createAnswer = async (req, res) => {
 
 const getAnswersByQuestionId = async (req, res) => {
   const { question_id } = req.params;
+  const userId = req.user?.user_id ?? null;
 
   try {
     const questionCheck = await pool.query('SELECT 1 FROM forum_questions WHERE question_id = $1', [question_id]);
@@ -291,8 +292,15 @@ const getAnswersByQuestionId = async (req, res) => {
     }
 
     const result = await pool.query(
-      'SELECT * FROM forum_answers WHERE question_id = $1 ORDER BY created_at ASC',
-      [question_id]
+      `SELECT fa.*,
+         COALESCE(
+           (SELECT vote_type FROM answer_votes
+            WHERE answer_id = fa.answer_id AND user_id = $2), null
+         ) AS user_vote
+       FROM forum_answers fa
+       WHERE fa.question_id = $1
+       ORDER BY fa.created_at ASC`,
+      [question_id, userId]
     );
 
     return res.status(200).json({ answers: result.rows });
@@ -346,6 +354,154 @@ const updateAnswer = async (req, res) => {
   }
 };
 
+const voteAnswer = async (req, res) => {
+  const { answer_id } = req.params;
+  const { vote_type } = req.body;
+
+  if (vote_type !== 'upvote' && vote_type !== 'downvote') {
+    return res.status(400).json({ message: 'vote_type must be upvote or downvote.' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const answerResult = await client.query(
+      'SELECT answer_id, question_id, user_id, upvotes, downvotes FROM forum_answers WHERE answer_id = $1',
+      [answer_id]
+    );
+
+    if (answerResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Answer not found.' });
+    }
+
+    const answer = answerResult.rows[0];
+    if (answer.user_id === req.user.user_id) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ message: 'You cannot vote on your own answer.' });
+    }
+
+    const existingVoteResult = await client.query(
+      'SELECT vote_type FROM answer_votes WHERE answer_id = $1 AND user_id = $2',
+      [answer_id, req.user.user_id]
+    );
+
+    const existingVote = existingVoteResult.rows[0]?.vote_type || null;
+    let pointDelta = 0;
+    let userVote = vote_type;
+
+    if (!existingVote) {
+      await client.query(
+        'INSERT INTO answer_votes (answer_id, user_id, vote_type) VALUES ($1, $2, $3)',
+        [answer_id, req.user.user_id, vote_type]
+      );
+
+      if (vote_type === 'upvote') {
+        await client.query(
+          'UPDATE forum_answers SET upvotes = GREATEST(0, upvotes + 1) WHERE answer_id = $1',
+          [answer_id]
+        );
+        pointDelta = 1;
+      } else {
+        await client.query(
+          'UPDATE forum_answers SET downvotes = GREATEST(0, downvotes + 1) WHERE answer_id = $1',
+          [answer_id]
+        );
+        pointDelta = -1;
+      }
+    } else if (existingVote === vote_type) {
+      await client.query('DELETE FROM answer_votes WHERE answer_id = $1 AND user_id = $2', [
+        answer_id,
+        req.user.user_id,
+      ]);
+
+      if (existingVote === 'upvote') {
+        await client.query(
+          'UPDATE forum_answers SET upvotes = GREATEST(0, upvotes - 1) WHERE answer_id = $1',
+          [answer_id]
+        );
+        pointDelta = -1;
+      } else {
+        await client.query(
+          'UPDATE forum_answers SET downvotes = GREATEST(0, downvotes - 1) WHERE answer_id = $1',
+          [answer_id]
+        );
+        pointDelta = 1;
+      }
+      userVote = null;
+    } else {
+      await client.query(
+        'UPDATE answer_votes SET vote_type = $1 WHERE answer_id = $2 AND user_id = $3',
+        [vote_type, answer_id, req.user.user_id]
+      );
+
+      if (vote_type === 'downvote') {
+        await client.query(
+          `UPDATE forum_answers
+           SET upvotes = GREATEST(0, upvotes - 1),
+               downvotes = GREATEST(0, downvotes + 1)
+           WHERE answer_id = $1`,
+          [answer_id]
+        );
+        pointDelta = -2;
+      } else {
+        await client.query(
+          `UPDATE forum_answers
+           SET downvotes = GREATEST(0, downvotes - 1),
+               upvotes = GREATEST(0, upvotes + 1)
+           WHERE answer_id = $1`,
+          [answer_id]
+        );
+        pointDelta = 2;
+      }
+    }
+
+    const pointsResult = await client.query(
+      `UPDATE users
+       SET contribution_points = GREATEST(0, contribution_points + $1)
+       WHERE user_id = $2
+       RETURNING contribution_points`,
+      [pointDelta, answer.user_id]
+    );
+
+    const points = pointsResult.rows[0].contribution_points;
+    let badgeLevel = 'Member';
+    if (points >= 200) {
+      badgeLevel = 'Gold';
+    } else if (points >= 100) {
+      badgeLevel = 'Silver';
+    } else if (points >= 30) {
+      badgeLevel = 'Bronze';
+    }
+
+    await client.query('UPDATE users SET badge_level = $1 WHERE user_id = $2', [badgeLevel, answer.user_id]);
+
+    const updatedAnswerResult = await client.query(
+      'SELECT answer_id, upvotes, downvotes FROM forum_answers WHERE answer_id = $1',
+      [answer_id]
+    );
+
+    await client.query('COMMIT');
+
+    const updatedAnswer = updatedAnswerResult.rows[0];
+    return res.status(200).json({
+      message: 'Vote recorded.',
+      answer: {
+        ...updatedAnswer,
+        net_votes: updatedAnswer.upvotes - updatedAnswer.downvotes,
+      },
+      user_vote: userVote,
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    return res.status(500).json({ message: 'Server error.' });
+  } finally {
+    client.release();
+  }
+};
+
 module.exports = {
   createQuestion,
   getQuestions,
@@ -355,4 +511,5 @@ module.exports = {
   createAnswer,
   getAnswersByQuestionId,
   updateAnswer,
+  voteAnswer,
 };
