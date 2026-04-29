@@ -189,6 +189,13 @@ export default function Navbar() {
 
           {token && user?.status === 'approved' && (
             <div className="flex items-center gap-3">
+              {(user.role === 'admin' || user.role === 'instructor') && (
+                <Link to="/reports"
+                  className="text-sm font-medium text-primary-600
+                    dark:text-primary-400 hover:underline">
+                  Reports
+                </Link>
+              )}
               {user.role === 'admin' && (
                 <Link to="/admin"
                   className="text-sm font-medium text-primary-600

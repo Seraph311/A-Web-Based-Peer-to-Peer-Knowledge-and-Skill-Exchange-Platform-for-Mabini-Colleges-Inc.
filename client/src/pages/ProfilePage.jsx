@@ -20,6 +20,9 @@ export default function ProfilePage() {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackForm, setFeedbackForm] = useState({ rating: 0, comment: '' });
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportForm, setReportForm] = useState({ reason: '', description: '' });
+  const [submittingReport, setSubmittingReport] = useState(false);
 
   const isOwnProfile = user?.user_id === parseInt(id, 10);
 
@@ -69,6 +72,30 @@ export default function ProfilePage() {
       showToast(error.response?.data?.message || 'Failed to submit feedback.', 'error');
     } finally {
       setSubmittingFeedback(false);
+    }
+  };
+
+  const handleSubmitReport = async () => {
+    if (!reportForm.reason) {
+      showToast('Please select a reason.', 'error');
+      return;
+    }
+
+    setSubmittingReport(true);
+    try {
+      await api.post('/reports', {
+        content_type: 'user',
+        content_id: parseInt(id, 10),
+        reason: reportForm.reason,
+        description: reportForm.description.trim() || undefined,
+      });
+      showToast('Report submitted. Thank you for helping keep our community safe.', 'success');
+      setShowReportModal(false);
+      setReportForm({ reason: '', description: '' });
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to submit report.', 'error');
+    } finally {
+      setSubmittingReport(false);
     }
   };
 
@@ -216,6 +243,15 @@ export default function ProfilePage() {
                       className="px-4 py-2 rounded-lg text-sm font-medium bg-yellow-500 hover:bg-yellow-600 text-white transition"
                     >
                       Leave Feedback
+                    </button>
+                    <button
+                      onClick={() => {
+                        setReportForm({ reason: '', description: '' });
+                        setShowReportModal(true);
+                      }}
+                      className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 hover:bg-red-600 text-white transition"
+                    >
+                      Report User
                     </button>
                   </>
                 )}
@@ -518,6 +554,63 @@ export default function ProfilePage() {
                 className="px-5 py-2.5 rounded-lg text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-60"
               >
                 {submittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Report {profile?.name}</h3>
+              <button
+                onClick={() => setShowReportModal(false)}
+                aria-label="Close report modal"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              Please select a reason for reporting this user. Our team will review your report.
+            </p>
+
+            <select
+              value={reportForm.reason}
+              onChange={(e) => setReportForm((prev) => ({ ...prev, reason: e.target.value }))}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition mb-4"
+            >
+              <option value="">Select a reason...</option>
+              <option value="Spam">Spam or misleading content</option>
+              <option value="Inappropriate behavior">Inappropriate behavior</option>
+              <option value="Harassment">Harassment or bullying</option>
+              <option value="Other">Other</option>
+            </select>
+
+            <textarea
+              placeholder="Additional details (optional)"
+              rows={3}
+              value={reportForm.description}
+              onChange={(e) => setReportForm((prev) => ({ ...prev, description: e.target.value }))}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition resize-none"
+            />
+
+            <div className="flex gap-3 justify-end mt-4">
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="px-4 py-2.5 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitReport}
+                disabled={submittingReport || !reportForm.reason}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-60"
+              >
+                {submittingReport ? 'Submitting...' : 'Submit Report'}
               </button>
             </div>
           </div>

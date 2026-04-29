@@ -74,8 +74,8 @@ const createReport = async (req, res) => {
 };
 
 const getReports = async (req, res) => {
-  if (req.user.role !== 'instructor') {
-    return res.status(403).json({ message: 'Access restricted to instructors only.' });
+  if (req.user.role !== 'instructor' && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access restricted to instructors and admins only.' });
   }
 
   const { status, content_type } = req.query;
@@ -141,8 +141,8 @@ const getReports = async (req, res) => {
 };
 
 const updateReportStatus = async (req, res) => {
-  if (req.user.role !== 'instructor') {
-    return res.status(403).json({ message: 'Access restricted to instructors only.' });
+  if (req.user.role !== 'instructor' && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Access restricted to instructors and admins only.' });
   }
 
   const { report_id } = req.params;
