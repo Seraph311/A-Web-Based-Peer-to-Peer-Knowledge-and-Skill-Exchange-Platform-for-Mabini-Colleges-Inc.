@@ -1,12 +1,6 @@
 const sanitizeString = (value) => {
   if (typeof value !== 'string') return value;
-  return value
-    .trim()
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
+  return value.trim();
 };
 
 const skippedFields = new Set([
