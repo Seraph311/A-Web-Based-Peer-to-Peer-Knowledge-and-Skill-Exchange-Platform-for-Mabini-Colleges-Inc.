@@ -245,28 +245,6 @@ const createAnswer = async (req, res) => {
       [question_id, req.user.user_id, content]
     );
 
-    const pointsResult = await client.query(
-      `
-        UPDATE users
-        SET contribution_points = contribution_points + 5
-        WHERE user_id = $1
-        RETURNING contribution_points
-      `,
-      [req.user.user_id]
-    );
-
-    const points = pointsResult.rows[0].contribution_points;
-    let badgeLevel = 'Member';
-    if (points >= 200) {
-      badgeLevel = 'Gold';
-    } else if (points >= 100) {
-      badgeLevel = 'Silver';
-    } else if (points >= 30) {
-      badgeLevel = 'Bronze';
-    }
-
-    await client.query('UPDATE users SET badge_level = $1 WHERE user_id = $2', [badgeLevel, req.user.user_id]);
-
     await client.query('COMMIT');
 
     return res.status(201).json({
