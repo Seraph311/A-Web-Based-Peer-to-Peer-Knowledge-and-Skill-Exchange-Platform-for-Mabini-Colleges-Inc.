@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
+import EmptyState from '../components/EmptyState';
+import LoadingSkeleton from '../components/LoadingSkeleton';
 import api from '../config/api';
 
 const departments = [
@@ -87,7 +90,7 @@ export default function ForumPage() {
             to="/forum/ask"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium text-sm transition shadow-sm shadow-primary-200 dark:shadow-primary-900"
           >
-            ✏️ Ask a Question
+            <Icon name="pencil" className="w-4 h-4" /> Ask a Question
           </Link>
         </div>
 
@@ -177,35 +180,35 @@ export default function ForumPage() {
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-          </div>
+          <LoadingSkeleton type="card" count={5} />
         ) : questions.length === 0 ? (
-          <div className="bg-white dark:bg-gray-900 rounded-2xl p-12 border border-gray-100 dark:border-gray-800 text-center">
-            <div className="text-5xl mb-4">💬</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No questions found</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-              {filters.keyword || filters.department_tag
-                ? 'Try adjusting your search or filters.'
-                : 'Be the first to ask a question!'}
-            </p>
-            <Link
-              to="/forum/ask"
-              className="inline-flex px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium text-sm transition"
-            >
-              Ask a Question
-            </Link>
-          </div>
+          <EmptyState 
+            icon="questions"
+            title={filters.keyword || filters.department_tag ? "No questions found" : "No questions yet"}
+            description={
+              filters.keyword || filters.department_tag
+                ? "Try adjusting your search or filters to find what you're looking for."
+                : "Be the first to ask a question and start a conversation with your peers!"
+            }
+            action={
+              <Link
+                to="/forum/ask"
+                className="inline-flex px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-heading font-medium text-sm transition hover:shadow-lg hover:shadow-primary-200 dark:hover:shadow-primary-900/50"
+              >
+                Ask a Question
+              </Link>
+            }
+          />
         ) : (
           <>
             {questions.map((q) => (
               <Link
                 key={q.question_id}
                 to={`/forum/${q.question_id}`}
-                className="group block bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-md transition-all duration-200 mb-4"
+                className="group block bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-lg hover:shadow-primary-100 dark:hover:shadow-primary-900/20 transition-all duration-300 mb-4 hover:-translate-y-1"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-base leading-snug group-hover:text-primary-600 dark:group-hover:text-primary-400 line-clamp-2">
+                  <h3 className="font-heading font-semibold text-gray-900 dark:text-white text-base leading-snug group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200 line-clamp-2">
                     {q.title}
                   </h3>
                   <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
@@ -213,16 +216,16 @@ export default function ForumPage() {
                   </span>
                 </div>
 
-                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed mt-2">{q.content}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed mt-2 font-body">{q.content}</p>
 
-                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                <div className="flex items-center gap-2 mt-4 flex-wrap">
                   {q.topic_tag && (
-                    <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-heading font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">
                       {q.topic_tag}
                     </span>
                   )}
                   {q.department_tag && (
-                    <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-heading font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                       {q.department_tag}
                     </span>
                   )}

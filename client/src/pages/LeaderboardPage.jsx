@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
+import { BadgeGold, BadgeSilver, BadgeBronze, BadgeMember, StarFilled } from '../components/Icon';
 import api from '../config/api';
 
 export default function LeaderboardPage() {
@@ -29,8 +31,22 @@ export default function LeaderboardPage() {
     'High School Department'
   ];
 
-  const badgeEmoji = {
-    Gold: '🥇', Silver: '🥈', Bronze: '🥉', Member: '🎓'
+  const badgeIconMap = {
+    Gold: BadgeGold,
+    Silver: BadgeSilver,
+    Bronze: BadgeBronze,
+    Member: BadgeMember,
+  };
+
+  const renderBadge = (level) => {
+    const BadgeComponent = badgeIconMap[level] || BadgeMember;
+    return <BadgeComponent size="1em" className="inline mr-0.5" />;
+  };
+
+  const medalIconMap = {
+    1: BadgeGold,
+    2: BadgeSilver,
+    3: BadgeBronze,
   };
 
   const fetchLeaderboard = async () => {
@@ -74,10 +90,10 @@ export default function LeaderboardPage() {
 
   const renderPodiumCard = (u, rank) => {
     if (!u) return null;
-    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+    const MedalComponent = medalIconMap[rank];
     return (
       <div key={u.user_id} className={podiumCardClass(rank, u.user_id)}>
-        <div className="text-3xl mb-2">{medal}</div>
+        <div className="mb-2"><MedalComponent size="2.5em" /></div>
         <div className="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-xl font-bold text-primary-700 dark:text-primary-300 mb-2 mx-auto">
           {(u.name || 'U').charAt(0).toUpperCase()}
         </div>
@@ -87,8 +103,8 @@ export default function LeaderboardPage() {
         >
           {u.name}
         </Link>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          {badgeEmoji[u.badge_level] || '🎓'} {u.badge_level}
+        <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+          {renderBadge(u.badge_level)}{u.badge_level}
         </p>
         <p className="text-lg font-bold text-primary-600 dark:text-primary-400 mt-1">
           {u.contribution_points}
@@ -105,7 +121,7 @@ export default function LeaderboardPage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-10">
-          <div className="text-5xl mb-4">🏆</div>
+          <div className="mb-4"><Icon name="trophy" className="w-16 h-16 text-amber-500" /></div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Leaderboard</h1>
           <p className="text-gray-500 dark:text-gray-400">
             Top contributors in the Mabini Colleges community.
@@ -229,13 +245,13 @@ export default function LeaderboardPage() {
                         </td>
 
                         <td className="px-5 py-4">
-                          <span className="text-sm">{badgeEmoji[u.badge_level] || '🎓'} {u.badge_level}</span>
+                          <span className="text-sm flex items-center gap-1">{renderBadge(u.badge_level)}{u.badge_level}</span>
                         </td>
 
                         <td className="px-5 py-4">
                           <span className="text-sm text-gray-600 dark:text-gray-300">
                             {u.average_rating
-                              ? `⭐ ${u.average_rating}`
+                              ? <span className="flex items-center gap-1"><StarFilled size="1em" className="text-amber-400" />{u.average_rating}</span>
                               : <span className="text-gray-400 dark:text-gray-500 text-xs">No ratings</span>}
                           </span>
                         </td>

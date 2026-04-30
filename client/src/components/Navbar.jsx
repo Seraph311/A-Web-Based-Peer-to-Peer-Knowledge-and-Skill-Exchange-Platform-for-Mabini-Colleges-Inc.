@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useRef, useState } from 'react';
+import { Icon } from './Icon';
 import api from '../config/api';
 
 export default function Navbar() {
@@ -71,7 +72,7 @@ export default function Navbar() {
         {/* Brand */}
         <Link
           to={token && user?.status === 'approved' ? '/dashboard' : '/'}
-          className="text-xl font-bold"
+          className="text-xl font-heading font-bold"
         >
           <span className="text-primary-600 dark:text-primary-400">Study</span>
           <span className="text-gray-800 dark:text-white">Bridge</span>
@@ -79,18 +80,18 @@ export default function Navbar() {
 
         {/* Nav links — shown to approved logged in users (including admin) */}
         {isApprovedUser && (
-          <div className="hidden md:flex items-center gap-6 text-sm
-            font-medium text-gray-600 dark:text-gray-300">
+          <div className="hidden md:flex items-center gap-8 text-sm
+            font-heading font-medium text-gray-600 dark:text-gray-300">
             <Link to="/forum"
-              className="hover:text-primary-600 dark:hover:text-primary-400 transition">
+              className="hover:text-primary-600 dark:hover:text-primary-400 transition relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-primary-500 after:transition-all after:duration-300 hover:after:w-full">
               Forum
             </Link>
             <Link to="/sessions"
-              className="hover:text-primary-600 dark:hover:text-primary-400 transition">
+              className="hover:text-primary-600 dark:hover:text-primary-400 transition relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-primary-500 after:transition-all after:duration-300 hover:after:w-full">
               Sessions
             </Link>
             <Link to="/leaderboard"
-              className="hover:text-primary-600 dark:hover:text-primary-400 transition">
+              className="hover:text-primary-600 dark:hover:text-primary-400 transition relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-primary-500 after:transition-all after:duration-300 hover:after:w-full">
               Leaderboard
             </Link>
           </div>
@@ -114,9 +115,11 @@ export default function Navbar() {
                     if (skillResults.length > 0) setShowResults(true);
                   }}
                   placeholder="Find a peer by skill..."
-                  className="w-full pl-9 pr-4 py-1.5 rounded-lg text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+                  className="w-full pl-10 pr-4 py-2 rounded-xl text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition font-body"
                 />
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
             </form>
 
@@ -150,7 +153,7 @@ export default function Navbar() {
                         <p className="text-xs font-medium text-primary-600 dark:text-primary-400">
                           {r.user.badge_level}
                         </p>
-                        {r.user.average_rating && <p className="text-xs text-gray-400">⭐ {r.user.average_rating}</p>}
+                        {r.user.average_rating && <p className="text-xs text-gray-400 flex items-center gap-1"><Icon name="star" className="w-3 h-3 text-yellow-500" /> {r.user.average_rating}</p>}
                       </div>
                     </Link>
                   ))
@@ -166,52 +169,60 @@ export default function Navbar() {
           <button
             onClick={() => setDark(!dark)}
             className="p-2 rounded-lg text-gray-500 dark:text-gray-400
-              hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              hover:bg-gray-100 dark:hover:bg-gray-800 transition hover:text-primary-500"
             aria-label="Toggle dark mode">
-            {dark ? '☀️' : '🌙'}
+            {dark ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
           </button>
 
           {!token && (
             <>
               <Link to="/login"
-                className="text-sm font-medium text-gray-600
+                className="text-sm font-heading font-medium text-gray-600
                   dark:text-gray-300 hover:text-primary-600
                   dark:hover:text-primary-400 transition">
                 Login
               </Link>
               <Link to="/register"
-                className="text-sm font-medium px-4 py-2 rounded-lg
-                  bg-primary-600 hover:bg-primary-700 text-white transition">
+                className="text-sm font-heading font-medium px-5 py-2.5 rounded-xl
+                  bg-primary-600 hover:bg-primary-700 text-white transition-all duration-300 hover:shadow-lg hover:shadow-primary-200 dark:hover:shadow-primary-900/50">
                 Register
               </Link>
             </>
           )}
 
           {token && user?.status === 'approved' && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {(user.role === 'admin' || user.role === 'instructor') && (
                 <Link to="/reports"
-                  className="text-sm font-medium text-primary-600
+                  className="text-sm font-heading font-medium text-primary-600
                     dark:text-primary-400 hover:underline">
                   Reports
                 </Link>
               )}
               {user.role === 'admin' && (
                 <Link to="/admin"
-                  className="text-sm font-medium text-primary-600
+                  className="text-sm font-heading font-medium text-primary-600
                     dark:text-primary-400 hover:underline">
                   Admin Panel
                 </Link>
               )}
               <Link to={`/profile/${user.user_id}`}
-                className="text-sm font-medium text-gray-600
+                className="text-sm font-heading font-medium text-gray-600
                   dark:text-gray-300 hover:text-primary-600
                   dark:hover:text-primary-400 transition">
                 {user.name}
               </Link>
               <button
                 onClick={handleLogout}
-                className="text-sm font-medium px-4 py-2 rounded-lg
+                className="text-sm font-heading font-medium px-4 py-2 rounded-xl
                   bg-gray-100 hover:bg-gray-200 dark:bg-gray-800
                   dark:hover:bg-gray-700 text-gray-700
                   dark:text-gray-200 transition">

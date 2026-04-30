@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Toast, { showToast } from '../components/Toast';
+import { Icon, BadgeGold, BadgeSilver, BadgeBronze, BadgeMember, StarFilled, StarEmpty, BuildingSchool, Calendar, Clock } from '../components/Icon';
 import api from '../config/api';
 
 export default function ProfilePage() {
@@ -26,8 +27,39 @@ export default function ProfilePage() {
 
   const isOwnProfile = user?.user_id === parseInt(id, 10);
 
-  const badgeEmoji = {
-    Gold: '🥇', Silver: '🥈', Bronze: '🥉', Member: '🎓'
+  const badgeIconMap = {
+    Gold: BadgeGold,
+    Silver: BadgeSilver,
+    Bronze: BadgeBronze,
+    Member: BadgeMember,
+  };
+
+  const renderBadge = (level) => {
+    const BadgeComponent = badgeIconMap[level] || BadgeMember;
+    return <BadgeComponent size="1.2em" className="mr-1" />;
+  };
+
+  const renderStars = (rating, interactive = false, onRate = null) => {
+    return (
+      <div className="flex gap-0.5" role={interactive ? "radiogroup" : "img"} aria-label={interactive ? "Rating selector" : `Rating: ${rating} out of 5 stars`}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            disabled={!interactive}
+            onClick={() => interactive && onRate?.(star)}
+            aria-label={interactive ? `Rate ${star} star${star > 1 ? 's' : ''}` : `${star} star${star > 1 ? 's' : ''}`}
+            className={`${interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-transform`}
+          >
+            {star <= rating ? (
+              <StarFilled size="1.2em" className="text-amber-400" />
+            ) : (
+              <StarEmpty size="1.2em" className="text-gray-300 dark:text-gray-600" />
+            )}
+          </button>
+        ))}
+      </div>
+    );
   };
 
   const tabs = ['overview', 'skills', 'feedback'];
@@ -160,8 +192,9 @@ export default function ProfilePage() {
             <div className="flex-1">
               <div className="flex items-center gap-3 flex-wrap mb-1">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{profile.name}</h1>
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
-                  {badgeEmoji[profile.badge_level] || '🎓'} {profile.badge_level}
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 flex items-center">
+                  {renderBadge(profile.badge_level)}
+                  {profile.badge_level}
                 </span>
                 {isOwnProfile && (
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
@@ -190,8 +223,8 @@ export default function ProfilePage() {
                   <span className="text-xs text-gray-400 dark:text-gray-500">Sessions</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xl font-bold text-gray-900 dark:text-white">
-                    {profile.average_rating ? `⭐ ${profile.average_rating}` : '—'}
+                  <span className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-1">
+                    {profile.average_rating ? <><StarFilled size="1em" className="text-amber-400" /> {profile.average_rating}</> : '—'}
                   </span>
                   <span className="text-xs text-gray-400 dark:text-gray-500">Avg Rating</span>
                 </div>
@@ -287,24 +320,24 @@ export default function ProfilePage() {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">About</h2>
               <div className="flex flex-col gap-3 mt-3">
                 <div className="flex items-center gap-3">
-                  <span className="text-lg w-8 text-center shrink-0">🎓</span>
+                  <Icon name="graduationCap" className="w-5 h-5 text-primary-500" />
                   <span className="text-xs text-gray-400 dark:text-gray-500 w-20">Role</span>
                   <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">{profile.role}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-lg w-8 text-center shrink-0">🏫</span>
+                  <BuildingSchool size="1.25em" className="text-primary-500" />
                   <span className="text-xs text-gray-400 dark:text-gray-500 w-20">Department</span>
                   <span className="text-sm text-gray-700 dark:text-gray-300">{profile.department}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-lg w-8 text-center shrink-0">⭐</span>
+                  <StarFilled size="1.25em" className="text-amber-400" />
                   <span className="text-xs text-gray-400 dark:text-gray-500 w-20">Rating</span>
                   <span className="text-sm text-gray-700 dark:text-gray-300">
                     {profile.average_rating ? `${profile.average_rating} / 5.00` : 'No ratings yet'}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-lg w-8 text-center shrink-0">📅</span>
+                  <Calendar size="1.25em" className="text-warm-500" />
                   <span className="text-xs text-gray-400 dark:text-gray-500 w-20">Joined</span>
                   <span className="text-sm text-gray-700 dark:text-gray-300">
                     {new Date(profile.created_at).toLocaleDateString('en-US', {
@@ -336,8 +369,9 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
                   <span className="text-sm text-gray-600 dark:text-gray-300">Badge Level</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {badgeEmoji[profile.badge_level] || '🎓'} {profile.badge_level}
+                  <span className="font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+                    {renderBadge(profile.badge_level)}
+                    {profile.badge_level}
                   </span>
                 </div>
               </div>
@@ -348,7 +382,7 @@ export default function ProfilePage() {
         {activeTab === 'skills' && (
           (profile.skills || []).length === 0 ? (
             <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 text-center">
-              <div className="text-4xl mb-3">🏷️</div>
+              <div className="mb-3"><Icon name="tag" className="w-10 h-10 text-primary-400" /></div>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
                 {isOwnProfile
                   ? 'You have no skills registered yet.'
@@ -425,7 +459,7 @@ export default function ProfilePage() {
               </div>
             ) : feedback.length === 0 ? (
               <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 text-center">
-                <div className="text-4xl mb-3">💬</div>
+                <div className="mb-3"><Icon name="chatBubble" className="w-10 h-10 text-gray-400" /></div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">No feedback yet.</p>
               </div>
             ) : (
@@ -472,6 +506,7 @@ export default function ProfilePage() {
                       <button
                         disabled={feedbackPage <= 1}
                         onClick={() => fetchFeedback(feedbackPage - 1)}
+                        aria-label="Previous feedback page"
                         className="px-3 py-1.5 rounded-lg text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         ← Previous
@@ -479,6 +514,7 @@ export default function ProfilePage() {
                       <button
                         disabled={feedbackPage >= feedbackPagination.total_pages}
                         onClick={() => fetchFeedback(feedbackPage + 1)}
+                        aria-label="Next feedback page"
                         className="px-3 py-1.5 rounded-lg text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         Next →
@@ -507,16 +543,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex gap-2 justify-center my-6">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => setFeedbackForm((prev) => ({ ...prev, rating: star }))}
-                  className="text-3xl transition hover:scale-110"
-                >
-                  {star <= feedbackForm.rating ? '⭐' : '☆'}
-                </button>
-              ))}
+              {renderStars(feedbackForm.rating, true, (rating) => setFeedbackForm((prev) => ({ ...prev, rating })))}
             </div>
 
             <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
 import api from '../config/api';
 
@@ -136,9 +137,12 @@ export default function SessionsPage() {
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium text-sm transition shadow-sm shadow-primary-200 dark:shadow-primary-900"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-heading font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-primary-200 dark:hover:shadow-primary-900/50 hover:-translate-y-0.5"
           >
-            + Create Session
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Create Session
           </button>
         </div>
 
@@ -187,7 +191,7 @@ export default function SessionsPage() {
           </div>
         ) : sessions.length === 0 ? (
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-12 border border-gray-100 dark:border-gray-800 text-center">
-            <div className="text-5xl mb-4">🤝</div>
+            <div className="mb-4"><Icon name="handshake" className="w-16 h-16 text-primary-400" /></div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No sessions found</h3>
             <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
               {filters.keyword ? 'Try a different search term.' : 'No sessions match the current filters.'}
@@ -201,11 +205,11 @@ export default function SessionsPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {sessions.map((s) => (
                 <div
                   key={s.session_id}
-                  className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-md transition-all duration-200 flex flex-col"
+                  className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-lg hover:shadow-primary-100 dark:hover:shadow-primary-900/20 transition-all duration-300 flex flex-col"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-3">
@@ -235,18 +239,21 @@ export default function SessionsPage() {
                     </h3>
 
                     <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
-                      <span>👥 {s.participant_count} participant(s)</span>
+                      <span className="flex items-center gap-1"><Icon name="users" className="w-3.5 h-3.5" /> {s.participant_count} participant(s)</span>
                       <span>{new Date(s.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                  <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-800">
                     {s.creator_id === user?.user_id || s.is_joined ? (
                       <Link
                         to={`/sessions/${s.session_id}`}
-                        className="w-full inline-flex items-center justify-center py-2 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/50 transition"
+                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-sm font-heading font-medium hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-all duration-300 group"
                       >
-                        Open Session →
+                        Open Session
+                        <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                       </Link>
                     ) : s.status === 'closed' ? (
                       <button
@@ -259,9 +266,17 @@ export default function SessionsPage() {
                       <button
                         onClick={() => handleJoin(s.session_id)}
                         disabled={joining[s.session_id]}
-                        className="w-full py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition disabled:opacity-60"
+                        className="w-full py-2.5 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white text-sm font-heading font-medium transition-all duration-300 disabled:opacity-60 hover:shadow-md hover:shadow-primary-200 dark:hover:shadow-primary-900/30"
                       >
-                        {joining[s.session_id] ? 'Joining...' : 'Join Session'}
+                        {joining[s.session_id] ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Joining...
+                          </span>
+                        ) : 'Join Session'}
                       </button>
                     )}
                   </div>
@@ -324,7 +339,7 @@ export default function SessionsPage() {
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                   >
-                    👥 Group
+                    <Icon name="users" className="w-4 h-4 mr-1" /> Group
                   </button>
                   <button
                     type="button"
@@ -335,7 +350,7 @@ export default function SessionsPage() {
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                   >
-                    🤝 1-on-1
+                    1-on-1
                   </button>
                 </div>
               </div>

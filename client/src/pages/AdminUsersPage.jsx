@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
 import api from '../config/api';
 
@@ -222,7 +223,7 @@ export default function AdminUsersPage() {
                                 onClick={() => handleViewDocument(u.user_id)}
                                 className="text-xs px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition"
                               >
-                                📄 Doc
+                                <Icon name="fileText" className="w-3 h-3 mr-1" /> Doc
                               </button>
                             )}
 
@@ -232,7 +233,7 @@ export default function AdminUsersPage() {
                                 disabled={actionLoading[u.user_id]}
                                 className="text-xs px-2 py-1 rounded-lg bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-60"
                               >
-                                {actionLoading[u.user_id] === 'approving' ? '...' : '✓'}
+                                {actionLoading[u.user_id] === 'approving' ? '...' : <Icon name="check" className="w-3 h-3" />}
                               </button>
                             )}
 
@@ -245,7 +246,7 @@ export default function AdminUsersPage() {
                                 disabled={actionLoading[u.user_id]}
                                 className="text-xs px-2 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-60"
                               >
-                                {actionLoading[u.user_id] === 'rejecting' ? '...' : '✗'}
+                                {actionLoading[u.user_id] === 'rejecting' ? '...' : <Icon name="x" className="w-3 h-3" />}
                               </button>
                             )}
                           </div>

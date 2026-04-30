@@ -1,4 +1,5 @@
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
@@ -11,14 +12,12 @@ export default function PendingPage() {
       <div className="flex items-center justify-center min-h-[80vh] px-4">
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md
           p-8 max-w-md w-full text-center">
-          <div className="text-5xl mb-4">⏳</div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <div className="mb-4"><Icon name="hourglass" className="w-16 h-16 text-yellow-500" /></div>
+          <h1 className="text-2xl font-heading font-bold text-gray-900 dark:text-white mb-2">
             Awaiting Approval
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
-            Your account is currently under review by the admin.
-            You will be able to access StudyBridge once your
-            documents have been verified.
+          <p className="text-gray-600 dark:text-gray-400 mb-6 font-body">
+            Your account is currently under review. Once our team verifies your documents, you'll receive access to the platform.
           </p>
           {user && (
             <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">

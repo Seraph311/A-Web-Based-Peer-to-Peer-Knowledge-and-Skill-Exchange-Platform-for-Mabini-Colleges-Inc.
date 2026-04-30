@@ -89,12 +89,12 @@ export default function LoginPage() {
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4 py-12">
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-8 w-full max-w-md border border-gray-100 dark:border-gray-800">
           <div className="text-center mb-8">
-            <div className="text-2xl font-bold mb-1">
+            <div className="text-2xl font-heading font-bold mb-2">
               <span className="text-primary-600 dark:text-primary-400">Study</span>
               <span className="text-gray-800 dark:text-white">Bridge</span>
             </div>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
-              Welcome back. Sign in to continue.
+            <p className="text-gray-500 dark:text-gray-400 text-sm font-body">
+              Welcome back. Ready to continue your learning journey?
             </p>
           </div>
 
@@ -109,10 +109,10 @@ export default function LoginPage() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="you@example.com"
-                className={`w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition ${
+                className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 font-body ${
                   errors.email
                     ? 'border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 dark:border-gray-700'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                 }`}
               />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
@@ -128,10 +128,11 @@ export default function LoginPage() {
                   id="password"
                   value={form.password}
                   onChange={handleChange}
-                  className={`w-full px-4 py-2.5 pr-10 rounded-lg border bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition ${
+                  placeholder="Your password"
+                  className={`w-full px-4 py-3 pr-10 rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 font-body ${
                     errors.password
                       ? 'border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 dark:border-gray-700'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                   }`}
                 />
                 <button
@@ -154,9 +155,17 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-heading font-semibold transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed mt-2 hover:shadow-lg hover:shadow-primary-200 dark:hover:shadow-primary-900/50 hover:-translate-y-0.5"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : 'Sign In'}
             </button>
           </form>
 

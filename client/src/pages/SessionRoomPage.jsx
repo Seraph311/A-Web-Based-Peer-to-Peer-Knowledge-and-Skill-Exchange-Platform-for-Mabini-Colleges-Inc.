@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
 import api, { SOCKET_BASE_URL } from '../config/api';
 import { io } from 'socket.io-client';
@@ -330,7 +331,7 @@ export default function SessionRoomPage() {
                   onClick={() => setShowDeleteModal(true)}
                   className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 transition"
                 >
-                  🗑️ Delete
+                  <Icon name="trash" className="w-3.5 h-3.5 mr-1" /> Delete
                 </button>
               )}
             </div>
@@ -340,7 +341,7 @@ export default function SessionRoomPage() {
             {messages.length === 0 ? (
               <div className="flex items-center justify-center h-full text-center">
                 <div>
-                  <div className="text-4xl mb-3">💬</div>
+                  <div className="mb-3"><Icon name="chatBubble" className="w-10 h-10 text-gray-400" /></div>
                   <p className="text-gray-400 dark:text-gray-500 text-sm">
                     {isClosed ? 'This session has ended.' : 'No messages yet. Start the conversation!'}
                   </p>
@@ -482,7 +483,7 @@ export default function SessionRoomPage() {
                       {p.user_id === user?.user_id && <span className="text-primary-500">(You)</span>}
                     </Link>
                     <p className="text-xs text-gray-400 dark:text-gray-500">
-                      {p.participant_role === 'creator' ? '👑 Creator' : '👤 Participant'}
+                      {p.participant_role === 'creator' ? <><Icon name="crown" className="w-3 h-3 mr-1 text-amber-500" /> Creator</> : <><Icon name="user" className="w-3 h-3 mr-1" /> Participant</>}
                     </p>
                   </div>
                 </div>
@@ -504,7 +505,7 @@ export default function SessionRoomPage() {
       {showEndModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-xl text-center">
-            <div className="text-4xl mb-4">🏁</div>
+            <div className="mb-4"><Icon name="flag" className="w-12 h-12 text-primary-500" /></div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">End this session?</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               This will close the session for all participants. You&apos;ll earn 10 contribution points.
@@ -531,7 +532,7 @@ export default function SessionRoomPage() {
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-xl text-center">
-            <div className="text-4xl mb-4">🗑️</div>
+            <div className="mb-4"><Icon name="trash" className="w-12 h-12 text-red-500" /></div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Delete this session?</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               This will permanently delete the session, all messages, and participant records. This action cannot be
@@ -570,15 +571,16 @@ export default function SessionRoomPage() {
               </button>
             </div>
 
-            <div className="flex gap-2 justify-center my-6">
+            <div className="flex gap-2 justify-center my-6" role="radiogroup" aria-label="Rate this session">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   type="button"
                   onClick={() => setFeedbackForm((prev) => ({ ...prev, rating: star }))}
+                  aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
                   className="text-3xl transition hover:scale-110"
                 >
-                  {star <= feedbackForm.rating ? '⭐' : '☆'}
+                  {star <= feedbackForm.rating ? <Icon name="starFilled" className="w-7 h-7 text-yellow-500" /> : <Icon name="star" className="w-7 h-7 text-gray-300 dark:text-gray-600" />}
                 </button>
               ))}
             </div>

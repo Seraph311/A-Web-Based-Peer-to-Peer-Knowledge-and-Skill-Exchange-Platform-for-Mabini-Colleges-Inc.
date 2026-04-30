@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
 import api from '../config/api';
 
@@ -176,7 +177,7 @@ export default function SkillsPage() {
               </div>
             ) : skills.length === 0 ? (
               <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 text-center">
-                <div className="text-4xl mb-3">🏷️</div>
+                <div className="mb-3"><Icon name="tag" className="w-10 h-10 text-primary-400" /></div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
                   You haven&apos;t registered any skills yet.
                 </p>
@@ -264,7 +265,7 @@ export default function SkillsPage() {
                   placeholder="Search for a skill or topic..."
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition text-sm"
                 />
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><Icon name="search" className="w-4 h-4" /></span>
               </div>
               <button
                 type="submit"
@@ -286,12 +287,12 @@ export default function SkillsPage() {
 
             {searchResults.length === 0 && searchQuery && !searching ? (
               <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 text-center">
-                <div className="text-4xl mb-3">🔍</div>
+                <div className="mb-3"><Icon name="search" className="w-10 h-10 text-gray-400" /></div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">No peers found for "{searchQuery}".</p>
               </div>
             ) : searchResults.length === 0 ? (
               <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 text-center">
-                <div className="text-4xl mb-3">🤝</div>
+                <div className="mb-3"><Icon name="handshake" className="w-10 h-10 text-primary-400" /></div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">
                   Search for a skill to find peers who can help you.
                 </p>
@@ -319,7 +320,7 @@ export default function SkillsPage() {
                         </p>
                       )}
                       <div className="flex items-center gap-1 mt-1">
-                        <span className="text-yellow-500 text-xs">⭐</span>
+                        <Icon name="star" className="w-3.5 h-3.5 text-yellow-500" />
                         <span className="text-xs text-gray-500 dark:text-gray-400">
                           {r.user.average_rating
                             ? `${r.user.average_rating} rating`
@@ -475,7 +476,7 @@ export default function SkillsPage() {
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
                     }`}
                   >
-                    ✓ Available
+                    <Icon name="check" className="w-4 h-4 mr-1" /> Available
                   </button>
                   <button
                     type="button"
@@ -486,7 +487,7 @@ export default function SkillsPage() {
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
                     }`}
                   >
-                    ✗ Unavailable
+                    <Icon name="x" className="w-4 h-4 mr-1" /> Unavailable
                   </button>
                 </div>
               </div>
@@ -515,7 +516,7 @@ export default function SkillsPage() {
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-xl text-center">
-            <div className="text-4xl mb-4">🗑️</div>
+            <div className="mb-4"><Icon name="trash" className="w-12 h-12 text-red-500" /></div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Delete "{deleteTarget?.skill_name}"?</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 mt-2">
               This skill will be permanently removed. Any sessions linked to this skill will be unaffected.

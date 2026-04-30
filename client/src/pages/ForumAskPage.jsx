@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
 import api from '../config/api';
 
@@ -113,13 +114,15 @@ export default function ForumAskPage() {
           <div className="lg:col-span-2">
             <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
               <form noValidate onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+<div>
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Question Title *
                   </label>
-                  <p className="text-xs text-gray-400 mb-1">Be specific and clear about what you're asking.</p>
+                  <p id="title-helper" className="text-xs text-gray-400 mb-1">Be specific and clear about what you're asking.</p>
                   <input
                     type="text"
+                    id="title"
+                    aria-describedby="title-helper"
                     value={form.title}
                     onChange={(e) => {
                       setForm((prev) => ({ ...prev, title: e.target.value }));
@@ -223,7 +226,7 @@ export default function ForumAskPage() {
 
           <div className="lg:col-span-1">
             <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 h-fit">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">💡 Tips for a great question</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Icon name="lightbulb" className="w-5 h-5 text-amber-500" /> Tips for a great question</h3>
 
               <div className="flex flex-col gap-3">
                 {tips.map((tip) => (

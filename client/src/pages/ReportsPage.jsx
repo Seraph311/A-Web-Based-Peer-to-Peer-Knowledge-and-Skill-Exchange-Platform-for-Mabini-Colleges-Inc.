@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
 import api from '../config/api';
 
@@ -138,7 +139,7 @@ export default function ReportsPage() {
           </div>
         ) : reports.length === 0 ? (
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 text-center">
-            <div className="text-4xl mb-3">📋</div>
+            <div className="mb-3"><Icon name="clipboard" className="w-10 h-10 text-gray-400" /></div>
             <p className="text-gray-500 dark:text-gray-400 text-sm">No reports found.</p>
           </div>
         ) : (

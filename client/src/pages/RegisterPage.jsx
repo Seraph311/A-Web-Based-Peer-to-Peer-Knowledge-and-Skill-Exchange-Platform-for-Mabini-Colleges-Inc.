@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
 import api from '../config/api';
 
@@ -209,7 +210,7 @@ export default function RegisterPage() {
                   />
                   {isInstitutional && (
                     <p className="text-primary-600 dark:text-primary-400 text-xs mt-1 flex items-center gap-1">
-                      ✓ Institutional email detected — instant approval via OTP.
+                      <Icon name="check" className="w-3 h-3" /> Institutional email detected — instant approval via OTP.
                     </p>
                   )}
                   {!isInstitutional && form.email.length > 0 && (
@@ -356,7 +357,7 @@ export default function RegisterPage() {
                         }}
                       />
                       <div className="text-center">
-                        <div className="text-3xl mb-2">📄</div>
+                        <div className="mb-2"><Icon name="fileText" className="w-8 h-8 text-gray-400" /></div>
                         <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {file ? file.name : 'Click to upload verification document'}
                         </p>
@@ -388,7 +389,7 @@ export default function RegisterPage() {
             </>
           ) : (
             <div className="text-center">
-              <div className="text-4xl mb-4">📬</div>
+              <div className="mb-4"><Icon name="mail" className="w-12 h-12 text-primary-500" /></div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Verify your email</h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">We sent a 6-digit code to:</p>
               <p className="text-primary-600 dark:text-primary-400 font-semibold text-sm mb-6">{registeredEmail}</p>

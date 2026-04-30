@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
 import api from '../config/api';
 
@@ -439,7 +440,7 @@ export default function ForumQuestionPage() {
                       onClick={handleStartEditQuestion}
                       className="text-xs px-3 py-1.5 rounded-lg font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
                     >
-                      ✏️ Edit
+                      <Icon name="pencil" className="w-3.5 h-3.5 mr-1" /> Edit
                     </button>
                   )}
                   {(question.user_id === user?.user_id || user?.role === 'admin') && (
@@ -447,7 +448,7 @@ export default function ForumQuestionPage() {
                       onClick={() => setShowDeleteModal(true)}
                       className="text-xs px-3 py-1.5 rounded-lg font-medium bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition"
                     >
-                      🗑️ Delete Question
+                      <Icon name="trash" className="w-3.5 h-3.5 mr-1" /> Delete Question
                     </button>
                   )}
                   {question.updated_at && (
@@ -584,7 +585,7 @@ export default function ForumQuestionPage() {
                     to={`/profile/${a.user_id}`}
                     className="w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-xs font-bold text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800 transition"
                   >
-                    {a.answerer_badge === 'Gold' ? '🥇' : a.answerer_badge === 'Silver' ? '🥈' : a.answerer_badge === 'Bronze' ? '🥉' : '🎓'}
+                    {a.answerer_badge === 'Gold' ? <Icon name="medalGold" className="w-4 h-4" /> : a.answerer_badge === 'Silver' ? <Icon name="medalSilver" className="w-4 h-4" /> : a.answerer_badge === 'Bronze' ? <Icon name="medalBronze" className="w-4 h-4" /> : <Icon name="graduationCap" className="w-4 h-4" />}
                   </Link>
                   <Link
                     to={`/profile/${a.user_id}`}
@@ -599,7 +600,7 @@ export default function ForumQuestionPage() {
                       onClick={() => handleStartEditAnswer(a)}
                       className="text-xs px-3 py-1.5 rounded-lg font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
                     >
-                      ✏️ Edit
+                      <Icon name="pencil" className="w-3.5 h-3.5 mr-1" /> Edit
                     </button>
                   )}
                   {a.updated_at && (
@@ -619,7 +620,7 @@ export default function ForumQuestionPage() {
         {showDeleteModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
             <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-xl text-center">
-              <div className="text-4xl mb-4">🗑️</div>
+              <div className="mb-4"><Icon name="trash" className="w-12 h-12 text-red-500" /></div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Delete this question?</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                 This will permanently delete the question and all its answers. This action cannot be undone.

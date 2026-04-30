@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
 import api from '../config/api';
 
@@ -127,7 +128,7 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-2xl">👥</span>
+                  <Icon name="users" className="w-6 h-6 text-gray-600 dark:text-gray-400" />
                 </div>
                 <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{stats.total_users}</div>
                 <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -137,7 +138,7 @@ export default function AdminDashboardPage() {
 
               <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-2xl">⏳</span>
+                  <Icon name="hourglass" className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
                 </div>
                 <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-1">{stats.pending_count}</div>
                 <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -147,7 +148,7 @@ export default function AdminDashboardPage() {
 
               <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-2xl">✅</span>
+                  <Icon name="check" className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{stats.approved_count}</div>
                 <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Approved</div>
@@ -155,7 +156,7 @@ export default function AdminDashboardPage() {
 
               <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-2xl">❌</span>
+                  <Icon name="x" className="w-6 h-6 text-red-600 dark:text-red-400" />
                 </div>
                 <div className="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">{stats.rejected_count}</div>
                 <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rejected</div>
@@ -175,7 +176,7 @@ export default function AdminDashboardPage() {
 
             {pending.length === 0 ? (
               <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 text-center">
-                <div className="text-4xl mb-3">🎉</div>
+                <div className="mb-3"><Icon name="party" className="w-10 h-10 text-primary-500" /></div>
                 <p className="text-gray-500 dark:text-gray-400">No pending approvals. All caught up!</p>
               </div>
             ) : (
@@ -207,7 +208,7 @@ export default function AdminDashboardPage() {
                           onClick={() => handleViewDocument(u.user_id)}
                           className="px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
                         >
-                          📄 View Document
+                          <Icon name="fileText" className="w-4 h-4 mr-1" /> View Document
                         </button>
                       ) : (
                         <span className="text-xs text-gray-400 dark:text-gray-500 italic px-3 py-1.5">
@@ -220,7 +221,7 @@ export default function AdminDashboardPage() {
                         onClick={() => handleApprove(u.user_id)}
                         className="px-3 py-1.5 rounded-lg text-sm font-medium bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
                       >
-                        {actionLoading[u.user_id] === 'approving' ? 'Approving...' : '✓ Approve'}
+                        {actionLoading[u.user_id] === 'approving' ? 'Approving...' : <><Icon name="check" className="w-4 h-4 mr-1" /> Approve</>}
                       </button>
 
                       <button
@@ -231,7 +232,7 @@ export default function AdminDashboardPage() {
                         }}
                         className="px-3 py-1.5 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
                       >
-                        {actionLoading[u.user_id] === 'rejecting' ? 'Rejecting...' : '✗ Reject'}
+                        {actionLoading[u.user_id] === 'rejecting' ? 'Rejecting...' : <><Icon name="x" className="w-4 h-4 mr-1" /> Reject</>}
                       </button>
                     </div>
                   </div>
