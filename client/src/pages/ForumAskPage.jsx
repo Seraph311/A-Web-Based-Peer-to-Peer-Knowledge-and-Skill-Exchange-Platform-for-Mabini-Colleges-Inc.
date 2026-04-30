@@ -95,7 +95,7 @@ export default function ForumAskPage() {
       <Navbar />
       <Toast />
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link
           to="/forum"
           className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition mb-6"
@@ -110,9 +110,7 @@ export default function ForumAskPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-100 dark:border-gray-800">
               <form noValidate onSubmit={handleSubmit} className="space-y-5">
 <div>
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -222,9 +220,8 @@ export default function ForumAskPage() {
                 </div>
               </form>
             </div>
-          </div>
 
-          <div className="lg:col-span-1">
+          <div className="mt-6">
             <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 h-fit">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Icon name="lightbulb" className="w-5 h-5 text-amber-500" /> Tips for a great question</h3>
 
@@ -250,7 +247,6 @@ export default function ForumAskPage() {
               </div>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );
