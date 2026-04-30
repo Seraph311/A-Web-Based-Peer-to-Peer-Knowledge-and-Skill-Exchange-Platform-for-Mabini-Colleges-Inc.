@@ -103,7 +103,7 @@ export default function LeaderboardPage() {
         >
           {u.name}
         </Link>
-        <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+        <p className="text-xs text-gray-500 dark:text-gray-300 flex items-center">
           {renderBadge(u.badge_level)}{u.badge_level}
         </p>
         <p className="text-lg font-bold text-primary-600 dark:text-primary-400 mt-1">
@@ -121,7 +121,7 @@ export default function LeaderboardPage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-10">
-          <div className="mb-4"><Icon name="trophy" className="w-16 h-16 text-amber-500" /></div>
+          <div className="mb-4 flex justify-center"><Icon name="trophy" className="w-16 h-16 text-amber-500" /></div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Leaderboard</h1>
           <p className="text-gray-500 dark:text-gray-400">
             Top contributors in the Mabini Colleges community.
@@ -245,7 +245,7 @@ export default function LeaderboardPage() {
                         </td>
 
                         <td className="px-5 py-4">
-                          <span className="text-sm flex items-center gap-1">{renderBadge(u.badge_level)}{u.badge_level}</span>
+                          <span className="text-sm flex items-center gap-1 text-gray-500 dark:text-gray-300">{renderBadge(u.badge_level)}{u.badge_level}</span>
                         </td>
 
                         <td className="px-5 py-4">
