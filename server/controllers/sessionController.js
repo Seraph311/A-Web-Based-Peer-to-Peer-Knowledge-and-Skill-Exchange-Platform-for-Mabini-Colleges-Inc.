@@ -77,6 +77,11 @@ const getSessions = async (req, res) => {
   if (status) {
     if (status === 'open' || status === 'ongoing') {
       conditions.push(`s.status IN ('open', 'ongoing')`);
+    } else if (status === 'closed') {
+      values.push(status);
+      conditions.push(`s.status = $${values.length}`);
+      conditions.push(`(s.creator_id = $${values.length + 1} OR EXISTS (SELECT 1 FROM session_participants sp WHERE sp.session_id = s.session_id AND sp.user_id = $${values.length + 1}))`);
+      values.push(userId);
     } else {
       values.push(status);
       conditions.push(`s.status = $${values.length}`);
