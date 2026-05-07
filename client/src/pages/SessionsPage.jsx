@@ -401,110 +401,122 @@ export default function SessionsPage() {
 
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create Study Session</h2>
-              <button
-                type="button"
-                onClick={() => setShowCreateModal(false)}
-                aria-label="Close create session modal"
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl leading-none"
-              >
-                ×
-              </button>
-            </div>
-
-            <form noValidate onSubmit={handleCreateSession}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Session Type</label>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setCreateForm((prev) => ({ ...prev, session_type: 'group' }))}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition ${
-                      createForm.session_type === 'group'
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <Icon name="users" className="w-4 h-4 mr-1" /> Group
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCreateForm((prev) => ({ ...prev, session_type: 'one-on-one' }))}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition ${
-                      createForm.session_type === 'one-on-one'
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    1-on-1
-                  </button>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create Study Session</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Start a new collaborative study room</p>
                 </div>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Topic *</label>
-                <input
-                  type="text"
-                  value={createForm.topic}
-                  onChange={(e) => {
-                    setCreateForm((prev) => ({ ...prev, topic: e.target.value }));
-                    if (createErrors.topic) {
-                      setCreateErrors((prev) => ({ ...prev, topic: '' }));
-                    }
-                  }}
-                  placeholder="What will this session cover?"
-                  className={`w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition text-sm ${
-                    createErrors.topic
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 dark:border-gray-700 focus:ring-primary-500'
-                  }`}
-                />
-                {createErrors.topic && <p className="text-red-500 text-xs mt-1">{createErrors.topic}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Link to Skill (optional)
-                </label>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">
-                  Connect this session to one of your registered skills.
-                </p>
-                <select
-                  value={createForm.skill_id}
-                  onChange={(e) => setCreateForm((prev) => ({ ...prev, skill_id: e.target.value }))}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-                >
-                  <option value="">No skill linked</option>
-                  {mySkills.map((s) => (
-                    <option key={s.skill_id} value={s.skill_id}>
-                      {s.skill_name}
-                    </option>
-                  ))}
-                </select>
-                {mySkills.length === 0 && (
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                    You have no registered skills.{' '}
-                    <Link to="/skills" className="text-primary-600 dark:text-primary-400 hover:underline">
-                      Add skills
-                    </Link>
-                  </p>
-                )}
-              </div>
-
-              <div className="flex gap-3 justify-end mt-6">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2.5 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
+                  aria-label="Close create session modal"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <form noValidate onSubmit={handleCreateSession} className="p-6">
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Session Type</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setCreateForm((prev) => ({ ...prev, session_type: 'group' }))}
+                      className={`py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                        createForm.session_type === 'group'
+                          ? 'bg-primary-600 text-white shadow-md shadow-primary-500/30'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border border-transparent'
+                      }`}
+                    >
+                      <Icon name="users" className="w-4 h-4" /> Group
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCreateForm((prev) => ({ ...prev, session_type: 'one-on-one' }))}
+                      className={`py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                        createForm.session_type === 'one-on-one'
+                          ? 'bg-primary-600 text-white shadow-md shadow-primary-500/30'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border border-transparent'
+                      }`}
+                    >
+                      <Icon name="user" className="w-4 h-4" /> 1-on-1
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Topic</label>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">Required</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={createForm.topic}
+                    onChange={(e) => {
+                      setCreateForm((prev) => ({ ...prev, topic: e.target.value }));
+                      if (createErrors.topic) {
+                        setCreateErrors((prev) => ({ ...prev, topic: '' }));
+                      }
+                    }}
+                    placeholder="What will this session cover?"
+                    className={`w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition text-sm ${
+                      createErrors.topic
+                        ? 'border-red-500 focus:ring-red-500'
+                        : 'border-gray-300 dark:border-gray-700 focus:ring-primary-500'
+                    }`}
+                  />
+                  {createErrors.topic && <p className="text-red-500 text-xs mt-1.5">{createErrors.topic}</p>}
+                </div>
+
+                <div className="pt-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Link to Skill
+                  </label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    Connect this session to one of your registered skills.
+                  </p>
+                  <select
+                    value={createForm.skill_id}
+                    onChange={(e) => setCreateForm((prev) => ({ ...prev, skill_id: e.target.value }))}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+                  >
+                    <option value="">No skill linked</option>
+                    {mySkills.map((s) => (
+                      <option key={s.skill_id} value={s.skill_id}>
+                        {s.skill_name}
+                      </option>
+                    ))}
+                  </select>
+                  {mySkills.length === 0 && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      You have no registered skills.{' '}
+                      <Link to="/skills" className="text-primary-600 dark:text-primary-400 hover:underline">
+                        Add skills
+                      </Link>
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-8 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="px-5 py-2.5 rounded-lg text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-60"
+                  className="flex-1 px-5 py-2.5 rounded-xl text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-60 shadow-md shadow-primary-500/20"
                 >
                   {creating ? 'Creating...' : 'Create Session'}
                 </button>
