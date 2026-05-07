@@ -1,10 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import { Icon } from '../components/Icon';
 import Toast, { showToast } from '../components/Toast';
 import api from '../config/api';
+import { io } from 'socket.io-client';
+
+const getSocketUrl = () => {
+  const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+  return apiUrl.replace(/\/api\/?$/, '');
+};
 
 export default function SessionsPage() {
   const { user } = useAuth();
@@ -32,6 +38,63 @@ export default function SessionsPage() {
   });
   const [createErrors, setCreateErrors] = useState({});
   const [mySkills, setMySkills] = useState([]);
+  const socketRef = useRef(null);
+  const [inviteNotification, setInviteNotification] = useState(false);
+
+  const fetchInvites = useCallback(async () => {
+    setLoadingInvites(true);
+    try {
+      const { data } = await api.get('/invites');
+      setInvites(data.invites || []);
+    } catch {
+      setInvites([]);
+    } finally {
+      setLoadingInvites(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('sb_token');
+    const socketUrl = getSocketUrl();
+    if (!token || !socketUrl) return;
+
+    try {
+      const socket = io(socketUrl, {
+        transports: ['polling', 'websocket'],
+        auth: { token },
+      });
+
+      socket.on('connect', () => {
+        socketRef.current = socket;
+      });
+
+      socket.on('connect_error', () => {
+        socket.disconnect();
+      });
+
+      socket.on('new_invite', () => {
+        setInviteNotification(true);
+      });
+
+      socket.on('invite_updated', () => {
+        setInviteNotification(true);
+      });
+
+      return () => {
+        socket.disconnect();
+      };
+    } catch (e) {
+      console.error('Socket connection error:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (inviteNotification) {
+      fetchInvites();
+      showToast('You received a new invite!', 'info');
+      setInviteNotification(false);
+    }
+  }, [inviteNotification, fetchInvites]);
 
   const fetchSessions = useCallback(async () => {
     setLoading(true);
@@ -62,18 +125,6 @@ export default function SessionsPage() {
       .get('/skills/me')
       .then(({ data }) => setMySkills(data.skills))
       .catch(() => {});
-  }, []);
-
-  const fetchInvites = useCallback(async () => {
-    setLoadingInvites(true);
-    try {
-      const { data } = await api.get('/invites');
-      setInvites(data.invites || []);
-    } catch {
-      setInvites([]);
-    } finally {
-      setLoadingInvites(false);
-    }
   }, []);
 
   useEffect(() => {

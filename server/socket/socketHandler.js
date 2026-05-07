@@ -44,6 +44,8 @@ module.exports = (io) => {
       console.log('User connected:', socket.id);
     }
 
+    socket.join(`user_${socket.data.user.user_id}`);
+
     socket.on('join_session', async ({ session_id }) => {
       const normalizedSessionId = toInt(session_id);
       if (normalizedSessionId === null) {

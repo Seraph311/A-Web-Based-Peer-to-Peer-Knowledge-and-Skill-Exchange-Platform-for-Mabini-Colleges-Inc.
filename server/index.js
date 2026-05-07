@@ -15,6 +15,7 @@ const reportRoutes = require('./routes/reportRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const inviteRoutes = require('./routes/inviteRoutes');
 const socketHandler = require('./socket/socketHandler');
+const { setIO } = require('./socket/io');
 const sanitizeBody = require('./middleware/sanitize');
 const { generalLimiter, authLimiter, reportLimiter } = require('./middleware/rateLimiter');
 
@@ -48,6 +49,8 @@ const io = new Server(server, {
   pingTimeout: 60000,
   pingInterval: 25000,
 });
+
+setIO(io);
 
 app.use(cors(corsOptions));
 app.use(express.json());

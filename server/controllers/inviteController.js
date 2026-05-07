@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { getIO } = require('../socket/io');
 
 const normalizeStatus = (status) => (status === 'ongoing' ? 'open' : status);
 
@@ -134,6 +135,17 @@ const createInvite = async (req, res) => {
     );
 
     await client.query('COMMIT');
+
+    try {
+      const io = getIO();
+      io.to(`user_${inviteeId}`).emit('new_invite', {
+        invite_id: insertResult.rows[0].invite_id,
+        session_id: sessionId,
+      });
+    } catch (err) {
+      console.error('Failed to emit invite notification:', err.message);
+    }
+
     return res.status(201).json({
       message: 'Invite sent successfully.',
       invite: insertResult.rows[0],
@@ -203,6 +215,17 @@ const respondToInvite = async (req, res) => {
         [inviteId]
       );
       await client.query('COMMIT');
+
+      try {
+        const io = getIO();
+        io.to(`user_${invite.inviter_id}`).emit('invite_updated', {
+          invite_id: inviteId,
+          status: 'declined',
+        });
+      } catch (err) {
+        console.error('Failed to emit invite notification:', err.message);
+      }
+
       return res.status(200).json({ message: 'Invite declined.' });
     }
 
@@ -259,6 +282,18 @@ const respondToInvite = async (req, res) => {
     );
 
     await client.query('COMMIT');
+
+    try {
+      const io = getIO();
+      io.to(`user_${invite.inviter_id}`).emit('invite_updated', {
+        invite_id: inviteId,
+        status: 'accepted',
+        session_id: invite.session_id,
+      });
+    } catch (err) {
+      console.error('Failed to emit invite notification:', err.message);
+    }
+
     return res.status(200).json({
       message: 'Invite accepted.',
       participant: participantResult.rows[0],
