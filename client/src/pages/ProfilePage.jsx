@@ -24,6 +24,15 @@ export default function ProfilePage() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportForm, setReportForm] = useState({ reason: '', description: '' });
   const [submittingReport, setSubmittingReport] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [hostedSessions, setHostedSessions] = useState([]);
+  const [loadingHosted, setLoadingHosted] = useState(false);
+  const [inviteStep, setInviteStep] = useState('choose');
+  const [inviting, setInviting] = useState(false);
+  const [createForm, setCreateForm] = useState({ session_type: 'one-on-one', topic: '', skill_id: '' });
+  const [createErrors, setCreateErrors] = useState({});
+  const [creatingSession, setCreatingSession] = useState(false);
+  const [mySkills, setMySkills] = useState([]);
 
   const isOwnProfile = user?.user_id === parseInt(id, 10);
 
@@ -128,6 +137,86 @@ export default function ProfilePage() {
       showToast(error.response?.data?.message || 'Failed to submit report.', 'error');
     } finally {
       setSubmittingReport(false);
+    }
+  };
+
+  const loadHostedSessions = async () => {
+    setLoadingHosted(true);
+    try {
+      const { data } = await api.get('/sessions/hosted');
+      setHostedSessions(data.sessions || []);
+      setInviteStep((data.sessions || []).length > 0 ? 'choose' : 'create');
+    } catch {
+      setHostedSessions([]);
+      setInviteStep('create');
+    } finally {
+      setLoadingHosted(false);
+    }
+  };
+
+  const loadMySkills = async () => {
+    try {
+      const { data } = await api.get('/skills/me');
+      setMySkills(data.skills || []);
+    } catch {
+      setMySkills([]);
+    }
+  };
+
+  const handleSendInvite = async (sessionId) => {
+    if (!profile?.user_id) return;
+    setInviting(true);
+    try {
+      await api.post('/invites', {
+        session_id: sessionId,
+        invitee_id: profile.user_id,
+      });
+      showToast('Invite sent.', 'success');
+      setShowInviteModal(false);
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to send invite.', 'error');
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const handleCreateSession = async (e) => {
+    e.preventDefault();
+
+    if (!createForm.topic.trim()) {
+      setCreateErrors({ topic: 'Topic is required.' });
+      return;
+    }
+
+    if (createForm.topic.trim().length < 5) {
+      setCreateErrors({ topic: 'Topic must be at least 5 characters.' });
+      return;
+    }
+
+    setCreatingSession(true);
+    try {
+      const payload = {
+        session_type: createForm.session_type,
+        topic: createForm.topic.trim(),
+      };
+
+      if (createForm.skill_id) {
+        payload.skill_id = parseInt(createForm.skill_id, 10);
+      }
+
+      const { data } = await api.post('/sessions', payload);
+      await api.post('/invites', {
+        session_id: data.session.session_id,
+        invitee_id: profile.user_id,
+      });
+      showToast('Session created and invite sent.', 'success');
+      setShowInviteModal(false);
+      setCreateForm({ session_type: 'one-on-one', topic: '', skill_id: '' });
+      setCreateErrors({});
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to create session.', 'error');
+    } finally {
+      setCreatingSession(false);
     }
   };
 
@@ -262,12 +351,16 @@ export default function ProfilePage() {
                   </>
                 ) : (
                   <>
-                    <Link
-                      to="/sessions"
+                    <button
+                      onClick={async () => {
+                        setShowInviteModal(true);
+                        await loadHostedSessions();
+                        await loadMySkills();
+                      }}
                       className="px-4 py-2 rounded-lg text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition"
                     >
-                      Browse Sessions
-                    </Link>
+                      Invite to Session
+                    </button>
                     <button
                       onClick={() => {
                         setFeedbackForm({ rating: 0, comment: '' });
@@ -640,6 +733,160 @@ export default function ProfilePage() {
                 {submittingReport ? 'Submitting...' : 'Submit Report'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showInviteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Invite {profile?.name}</h3>
+              <button
+                onClick={() => setShowInviteModal(false)}
+                aria-label="Close invite modal"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            {loadingHosted ? (
+              <p className="text-sm text-gray-400">Loading sessions...</p>
+            ) : (
+              <>
+                <div className="flex gap-2 mb-4">
+                  {hostedSessions.length > 0 && (
+                    <button
+                      onClick={() => setInviteStep('choose')}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+                        inviteStep === 'choose'
+                          ? 'bg-primary-600 text-white'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                      }`}
+                    >
+                      Choose Session
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setInviteStep('create')}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+                      inviteStep === 'create'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                    }`}
+                  >
+                    Create New
+                  </button>
+                </div>
+
+                {inviteStep === 'choose' && hostedSessions.length > 0 && (
+                  <div className="space-y-3">
+                    {hostedSessions.map((s) => (
+                      <div key={s.session_id} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{s.topic}</p>
+                          <p className="text-xs text-gray-400">{s.session_type} · {s.participant_count} participants</p>
+                        </div>
+                        <button
+                          onClick={() => handleSendInvite(s.session_id)}
+                          disabled={inviting}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-60"
+                        >
+                          Invite
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {inviteStep === 'create' && (
+                  <form noValidate onSubmit={handleCreateSession} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Session Type</label>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setCreateForm((prev) => ({ ...prev, session_type: 'group' }))}
+                          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition ${
+                            createForm.session_type === 'group'
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                          }`}
+                        >
+                          Group
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCreateForm((prev) => ({ ...prev, session_type: 'one-on-one' }))}
+                          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition ${
+                            createForm.session_type === 'one-on-one'
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                          }`}
+                        >
+                          1-on-1
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Topic *</label>
+                      <input
+                        type="text"
+                        value={createForm.topic}
+                        onChange={(e) => {
+                          setCreateForm((prev) => ({ ...prev, topic: e.target.value }));
+                          if (createErrors.topic) {
+                            setCreateErrors((prev) => ({ ...prev, topic: '' }));
+                          }
+                        }}
+                        placeholder="What will this session cover?"
+                        className={`w-full px-4 py-2.5 rounded-lg border bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition text-sm ${
+                          createErrors.topic
+                            ? 'border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 dark:border-gray-700 focus:ring-primary-500'
+                        }`}
+                      />
+                      {createErrors.topic && <p className="text-red-500 text-xs mt-1">{createErrors.topic}</p>}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link to Skill (optional)</label>
+                      <select
+                        value={createForm.skill_id}
+                        onChange={(e) => setCreateForm((prev) => ({ ...prev, skill_id: e.target.value }))}
+                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+                      >
+                        <option value="">No skill linked</option>
+                        {mySkills.map((s) => (
+                          <option key={s.skill_id} value={s.skill_id}>
+                            {s.skill_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex gap-3 justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setShowInviteModal(false)}
+                        className="px-4 py-2.5 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={creatingSession}
+                        className="px-5 py-2.5 rounded-lg text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-60"
+                      >
+                        {creatingSession ? 'Creating...' : 'Create & Invite'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </>
+            )}
           </div>
         </div>
       )}

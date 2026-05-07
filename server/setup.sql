@@ -74,6 +74,19 @@ CREATE TABLE session_participants (
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE invites (
+    invite_id SERIAL PRIMARY KEY,
+    session_id INT REFERENCES sessions(session_id) ON DELETE CASCADE,
+    inviter_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    invitee_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    responded_at TIMESTAMP,
+    UNIQUE(session_id, invitee_id)
+);
+
+CREATE INDEX idx_invites_invitee_status ON invites(invitee_id, status);
+
 CREATE TABLE messages (
     message_id SERIAL PRIMARY KEY,
     session_id INT REFERENCES sessions(session_id) ON DELETE CASCADE,

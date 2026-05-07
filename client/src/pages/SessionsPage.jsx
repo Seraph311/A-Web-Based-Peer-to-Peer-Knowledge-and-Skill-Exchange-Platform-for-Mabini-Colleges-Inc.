@@ -15,6 +15,9 @@ export default function SessionsPage() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [joining, setJoining] = useState({});
+  const [invites, setInvites] = useState([]);
+  const [loadingInvites, setLoadingInvites] = useState(false);
+  const [respondingInvite, setRespondingInvite] = useState({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filters, setFilters] = useState({
     status: 'open',
@@ -60,6 +63,22 @@ export default function SessionsPage() {
       .then(({ data }) => setMySkills(data.skills))
       .catch(() => {});
   }, []);
+
+  const fetchInvites = useCallback(async () => {
+    setLoadingInvites(true);
+    try {
+      const { data } = await api.get('/invites');
+      setInvites(data.invites || []);
+    } catch {
+      setInvites([]);
+    } finally {
+      setLoadingInvites(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchInvites();
+  }, [fetchInvites]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
@@ -121,6 +140,27 @@ export default function SessionsPage() {
     }
   };
 
+  const handleInviteResponse = async (inviteId, response) => {
+    setRespondingInvite((prev) => ({ ...prev, [inviteId]: true }));
+    try {
+      await api.post(`/invites/${inviteId}/respond`, { response });
+      if (response === 'accepted') {
+        const accepted = invites.find((invite) => invite.invite_id === inviteId);
+        if (accepted) {
+          showToast('Invite accepted.', 'success');
+          navigate(`/sessions/${accepted.session_id}`);
+        }
+      } else {
+        showToast('Invite declined.', 'success');
+      }
+      fetchInvites();
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to respond to invite.', 'error');
+    } finally {
+      setRespondingInvite((prev) => ({ ...prev, [inviteId]: false }));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Navbar />
@@ -144,6 +184,54 @@ export default function SessionsPage() {
             </svg>
             Create Session
           </button>
+        </div>
+
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Invites</h2>
+            <button
+              onClick={fetchInvites}
+              className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              Refresh
+            </button>
+          </div>
+          {loadingInvites ? (
+            <p className="text-sm text-gray-400">Loading invites...</p>
+          ) : invites.length === 0 ? (
+            <p className="text-sm text-gray-400">No pending invites.</p>
+          ) : (
+            <div className="space-y-3">
+              {invites.map((invite) => (
+                <div key={invite.invite_id} className="flex items-center justify-between p-3 rounded-xl border border-gray-200 dark:border-gray-800">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {invite.session.topic}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      From {invite.inviter.name} · {invite.session.session_type}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleInviteResponse(invite.invite_id, 'declined')}
+                      disabled={respondingInvite[invite.invite_id]}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-60"
+                    >
+                      Decline
+                    </button>
+                    <button
+                      onClick={() => handleInviteResponse(invite.invite_id, 'accepted')}
+                      disabled={respondingInvite[invite.invite_id]}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-60"
+                    >
+                      Accept
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 mb-6 flex flex-wrap gap-4 items-end">

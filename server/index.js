@@ -13,6 +13,7 @@ const messageRoutes = require('./routes/messageRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const inviteRoutes = require('./routes/inviteRoutes');
 const socketHandler = require('./socket/socketHandler');
 const sanitizeBody = require('./middleware/sanitize');
 const { generalLimiter, authLimiter, reportLimiter } = require('./middleware/rateLimiter');
@@ -63,6 +64,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/reports', reportLimiter, reportRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/invites', inviteRoutes);
 
 socketHandler(io);
 

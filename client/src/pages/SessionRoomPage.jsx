@@ -28,6 +28,11 @@ export default function SessionRoomPage() {
   const [feedbackForm, setFeedbackForm] = useState({ rating: 0, comment: '' });
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteSearch, setInviteSearch] = useState('');
+  const [inviteResults, setInviteResults] = useState([]);
+  const [inviteSearching, setInviteSearching] = useState(false);
+  const [inviting, setInviting] = useState(false);
 
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -246,6 +251,43 @@ export default function SessionRoomPage() {
     }
   };
 
+  const handleInviteSearch = async () => {
+    const keyword = inviteSearch.trim();
+    if (!keyword) {
+      setInviteResults([]);
+      return;
+    }
+
+    setInviteSearching(true);
+    try {
+      const { data } = await api.get(`/users/search?keyword=${encodeURIComponent(keyword)}&limit=8`);
+      setInviteResults(data.users || []);
+    } catch {
+      setInviteResults([]);
+    } finally {
+      setInviteSearching(false);
+    }
+  };
+
+  const handleSendInvite = async (inviteeId) => {
+    if (!session?.session_id) return;
+    setInviting(true);
+    try {
+      await api.post('/invites', {
+        session_id: session.session_id,
+        invitee_id: inviteeId,
+      });
+      showToast('Invite sent.', 'success');
+      setShowInviteModal(false);
+      setInviteSearch('');
+      setInviteResults([]);
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to send invite.', 'error');
+    } finally {
+      setInviting(false);
+    }
+  };
+
   const getStatusBadgeClass = (status) => {
     if (status === 'closed') {
       return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
@@ -458,9 +500,19 @@ export default function SessionRoomPage() {
           </div>
 
           <div className="p-4 flex-1">
-            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-              Participants ({participants.length})
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Participants ({participants.length})
+              </h3>
+              {isCreator && !isClosed && (
+                <button
+                  onClick={() => setShowInviteModal(true)}
+                  className="text-xs px-2 py-1 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50 transition"
+                >
+                  Invite
+                </button>
+              )}
+            </div>
 
             {participants.map((p) => (
               <div
@@ -609,6 +661,67 @@ export default function SessionRoomPage() {
               >
                 {submittingFeedback ? 'Submitting...' : 'Submit Feedback'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showInviteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Invite to session</h3>
+              <button
+                onClick={() => setShowInviteModal(false)}
+                aria-label="Close invite modal"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={inviteSearch}
+                onChange={(e) => setInviteSearch(e.target.value)}
+                placeholder="Search by name or email"
+                className="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition text-sm"
+              />
+              <button
+                type="button"
+                onClick={handleInviteSearch}
+                className="px-4 py-2.5 rounded-lg text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition"
+              >
+                Search
+              </button>
+            </div>
+
+            <div className="mt-4">
+              {inviteSearching ? (
+                <p className="text-sm text-gray-400">Searching...</p>
+              ) : inviteResults.length === 0 ? (
+                <p className="text-sm text-gray-400">No results.</p>
+              ) : (
+                <div className="max-h-72 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
+                  {inviteResults.map((result) => (
+                    <div key={result.user_id} className="flex items-center justify-between py-3">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">{result.name}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{result.email}</p>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={inviting}
+                        onClick={() => handleSendInvite(result.user_id)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white transition disabled:opacity-60"
+                      >
+                        Invite
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

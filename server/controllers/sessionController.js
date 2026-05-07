@@ -405,6 +405,42 @@ const deleteSession = async (req, res) => {
   }
 };
 
+const getHostedSessions = async (req, res) => {
+  const userId = req.user.user_id;
+
+  try {
+    const result = await pool.query(
+      `
+        SELECT
+          s.session_id,
+          s.session_type,
+          s.topic,
+          s.status,
+          s.created_at,
+          (
+            SELECT COUNT(*)::int
+            FROM session_participants sp
+            WHERE sp.session_id = s.session_id
+          ) AS participant_count
+        FROM sessions s
+        WHERE s.creator_id = $1
+          AND s.status IN ('open', 'ongoing')
+        ORDER BY s.created_at DESC
+      `,
+      [userId]
+    );
+
+    const sessions = result.rows.map((row) => ({
+      ...row,
+      status: row.status === 'ongoing' ? 'open' : row.status,
+    }));
+
+    return res.status(200).json({ sessions });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 module.exports = {
   createSession,
   getSessions,
@@ -413,4 +449,5 @@ module.exports = {
   leaveSession,
   endSession,
   deleteSession,
+  getHostedSessions,
 };

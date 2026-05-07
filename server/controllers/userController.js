@@ -271,6 +271,56 @@ const updateMyPassword = async (req, res) => {
   }
 };
 
+const searchUsers = async (req, res) => {
+  const { keyword } = req.query;
+  const { page, limit, offset } = paginate(req.query);
+  const userId = req.user.user_id;
+
+  if (!keyword || typeof keyword !== 'string') {
+    return res.status(400).json({ message: 'Search keyword is required.' });
+  }
+
+  try {
+    const countResult = await pool.query(
+      `
+        SELECT COUNT(*)::int AS total
+        FROM users
+        WHERE status = 'approved'
+          AND user_id <> $1
+          AND (name ILIKE $2 OR email ILIKE $2)
+      `,
+      [userId, `%${keyword}%`]
+    );
+
+    const result = await pool.query(
+      `
+        SELECT user_id, name, email, department, role, badge_level
+        FROM users
+        WHERE status = 'approved'
+          AND user_id <> $1
+          AND (name ILIKE $2 OR email ILIKE $2)
+        ORDER BY name ASC
+        LIMIT $3
+        OFFSET $4
+      `,
+      [userId, `%${keyword}%`, limit, offset]
+    );
+
+    const total = countResult.rows[0].total;
+    return res.status(200).json({
+      users: result.rows,
+      pagination: {
+        total,
+        page,
+        limit,
+        total_pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 module.exports = {
   getLeaderboard,
   getUserProfile,
@@ -278,4 +328,5 @@ module.exports = {
   updateMyProfile,
   updateMyAvailability,
   updateMyPassword,
+  searchUsers,
 };

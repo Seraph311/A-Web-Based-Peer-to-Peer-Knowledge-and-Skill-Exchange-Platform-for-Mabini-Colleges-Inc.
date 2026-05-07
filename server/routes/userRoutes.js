@@ -9,9 +9,11 @@ const {
   updateMyProfile,
   updateMyAvailability,
   updateMyPassword,
+  searchUsers,
 } = require('../controllers/userController');
 
 router.get('/leaderboard', getLeaderboard);
+router.get('/search', verifyToken, searchUsers);
 router.get('/me', verifyToken, getMyProfile);
 router.put('/me', verifyToken, updateMyProfile);
 router.put('/me/availability', verifyToken, updateMyAvailability);
