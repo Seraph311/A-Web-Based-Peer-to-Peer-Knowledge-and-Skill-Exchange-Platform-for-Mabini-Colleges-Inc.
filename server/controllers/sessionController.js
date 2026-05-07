@@ -260,20 +260,6 @@ const joinSession = async (req, res) => {
       [session_id, userId]
     );
 
-    const pointsResult = await client.query(
-      `
-        UPDATE users
-        SET contribution_points = contribution_points + 5
-        WHERE user_id = $1
-        RETURNING contribution_points
-      `,
-      [userId]
-    );
-
-    const points = pointsResult.rows[0].contribution_points;
-    const badgeLevel = getBadgeLevel(points);
-    await client.query('UPDATE users SET badge_level = $1 WHERE user_id = $2', [badgeLevel, userId]);
-
     await client.query('COMMIT');
 
     return res.status(200).json({
@@ -359,19 +345,58 @@ const endSession = async (req, res) => {
       session_id,
     ]);
 
-    const pointsResult = await client.query(
+    const messageCountResult = await client.query(
+      'SELECT COUNT(*)::int AS message_count FROM messages WHERE session_id = $1',
+      [session_id]
+    );
+    const messageCount = messageCountResult.rows[0].message_count;
+
+    if (messageCount >= 2) {
+      const creatorPointsResult = await client.query(
+        `
+          UPDATE users
+          SET contribution_points = contribution_points + 10
+          WHERE user_id = $1
+          RETURNING contribution_points
+        `,
+        [userId]
+      );
+
+      const points = creatorPointsResult.rows[0].contribution_points;
+      const badgeLevel = getBadgeLevel(points);
+      await client.query('UPDATE users SET badge_level = $1 WHERE user_id = $2', [badgeLevel, userId]);
+    }
+
+    const activeParticipantsResult = await client.query(
       `
-        UPDATE users
-        SET contribution_points = contribution_points + 10
-        WHERE user_id = $1
-        RETURNING contribution_points
+        SELECT DISTINCT sp.user_id
+        FROM session_participants sp
+        JOIN messages m
+          ON m.session_id = sp.session_id
+         AND m.sender_id = sp.user_id
+        WHERE sp.session_id = $1
+          AND sp.role = 'participant'
       `,
-      [userId]
+      [session_id]
     );
 
-    const points = pointsResult.rows[0].contribution_points;
-    const badgeLevel = getBadgeLevel(points);
-    await client.query('UPDATE users SET badge_level = $1 WHERE user_id = $2', [badgeLevel, userId]);
+    const activeParticipantIds = activeParticipantsResult.rows.map((row) => row.user_id);
+    if (activeParticipantIds.length > 0) {
+      const participantPointsResult = await client.query(
+        `
+          UPDATE users
+          SET contribution_points = contribution_points + 5
+          WHERE user_id = ANY($1)
+          RETURNING user_id, contribution_points
+        `,
+        [activeParticipantIds]
+      );
+
+      for (const row of participantPointsResult.rows) {
+        const badgeLevel = getBadgeLevel(row.contribution_points);
+        await client.query('UPDATE users SET badge_level = $1 WHERE user_id = $2', [badgeLevel, row.user_id]);
+      }
+    }
 
     await client.query('COMMIT');
 

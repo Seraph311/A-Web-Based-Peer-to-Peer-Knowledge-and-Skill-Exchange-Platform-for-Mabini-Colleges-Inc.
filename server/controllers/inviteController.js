@@ -249,20 +249,6 @@ const respondToInvite = async (req, res) => {
       [invite.session_id, userId]
     );
 
-    const pointsResult = await client.query(
-      `
-        UPDATE users
-        SET contribution_points = contribution_points + 5
-        WHERE user_id = $1
-        RETURNING contribution_points
-      `,
-      [userId]
-    );
-
-    const points = pointsResult.rows[0].contribution_points;
-    const badgeLevel = points >= 200 ? 'Gold' : points >= 100 ? 'Silver' : points >= 30 ? 'Bronze' : 'Member';
-    await client.query('UPDATE users SET badge_level = $1 WHERE user_id = $2', [badgeLevel, userId]);
-
     await client.query(
       `
         UPDATE session_invites
