@@ -46,8 +46,20 @@ export default function Navbar() {
     setSearching(true);
     setShowResults(true);
     try {
-      const { data } = await api.get(`/skills/search?keyword=${encodeURIComponent(skillSearch)}`);
-      setSkillResults(data.results);
+      const [skillsRes, usersRes] = await Promise.all([
+        api.get(`/skills/search?keyword=${encodeURIComponent(skillSearch)}`),
+        api.get(`/users/search?keyword=${encodeURIComponent(skillSearch)}&limit=6`),
+      ]);
+
+      const skillResults = skillsRes.data.results || [];
+      const userResults = usersRes.data.users || [];
+
+      const combined = [
+        ...skillResults.map((r) => ({ type: 'skill', ...r })),
+        ...userResults.map((u) => ({ type: 'user', user: u, skill_name: null, description: null })),
+      ];
+
+      setSkillResults(combined);
     } catch {
       setSkillResults([]);
     } finally {
@@ -132,31 +144,35 @@ export default function Navbar() {
                     No peers found for "{skillSearch}"
                   </div>
                 ) : (
-                  skillResults.slice(0, 6).map((r) => (
-                    <Link
-                      key={`${r.user.user_id}-${r.skill_id}`}
-                      to={`/profile/${r.user.user_id}`}
-                      onClick={() => {
-                        setShowResults(false);
-                        setSkillSearch('');
-                        setSkillResults([]);
-                      }}
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition border-b border-gray-100 dark:border-gray-800 last:border-0"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{r.user.name}</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">
-                          {r.skill_name} · {r.user.department}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-medium text-primary-600 dark:text-primary-400">
-                          {r.user.badge_level}
-                        </p>
-                        {r.user.average_rating && <p className="text-xs text-gray-400 flex items-center gap-1"><Icon name="star" className="w-3 h-3 text-yellow-500" /> {r.user.average_rating}</p>}
-                      </div>
-                    </Link>
-                  ))
+                  skillResults.slice(0, 6).map((r) => {
+                    const user = r.type === 'skill' ? r.user : r.user;
+                    const skillName = r.type === 'skill' ? r.skill_name : null;
+                    return (
+                      <Link
+                        key={r.type === 'skill' ? `${user.user_id}-${r.skill_id}` : `user-${user.user_id}`}
+                        to={`/profile/${user.user_id}`}
+                        onClick={() => {
+                          setShowResults(false);
+                          setSkillSearch('');
+                          setSkillResults([]);
+                        }}
+                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition border-b border-gray-100 dark:border-gray-800 last:border-0"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
+                            {skillName ? `${skillName} · ` : ''}{user.department}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-medium text-primary-600 dark:text-primary-400">
+                            {user.badge_level}
+                          </p>
+                          {user.average_rating && <p className="text-xs text-gray-400 flex items-center gap-1"><Icon name="star" className="w-3 h-3 text-yellow-500" /> {user.average_rating}</p>}
+                        </div>
+                      </Link>
+                    );
+                  })
                 )}
               </div>
             )}
