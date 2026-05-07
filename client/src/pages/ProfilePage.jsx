@@ -344,8 +344,9 @@ export default function ProfilePage() {
                     </Link>
                     <Link
                       to="/skills"
-                      className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition"
                     >
+                      <Icon name="tag" className="w-4 h-4" />
                       Manage Skills
                     </Link>
                   </>
@@ -475,7 +476,7 @@ export default function ProfilePage() {
         {activeTab === 'skills' && (
           (profile.skills || []).length === 0 ? (
             <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 text-center">
-              <div className="mb-3"><Icon name="tag" className="w-10 h-10 text-primary-400" /></div>
+              <div className="mb-3 flex justify-center"><Icon name="tag" className="w-10 h-10 text-primary-400" /></div>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
                 {isOwnProfile
                   ? 'You have no skills registered yet.'

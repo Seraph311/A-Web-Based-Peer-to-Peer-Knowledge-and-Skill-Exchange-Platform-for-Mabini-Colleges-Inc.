@@ -287,12 +287,12 @@ export default function SkillsPage() {
 
             {searchResults.length === 0 && searchQuery && !searching ? (
               <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 text-center">
-                <div className="mb-3"><Icon name="search" className="w-10 h-10 text-gray-400" /></div>
+                <div className="mb-3 flex justify-center"><Icon name="search" className="w-10 h-10 text-gray-400" /></div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">No peers found for "{searchQuery}".</p>
               </div>
             ) : searchResults.length === 0 ? (
               <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-100 dark:border-gray-800 text-center">
-                <div className="mb-3"><Icon name="handshake" className="w-10 h-10 text-primary-400" /></div>
+                <div className="mb-3 flex justify-center"><Icon name="handshake" className="w-10 h-10 text-primary-400" /></div>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">
                   Search for a skill to find peers who can help you.
                 </p>

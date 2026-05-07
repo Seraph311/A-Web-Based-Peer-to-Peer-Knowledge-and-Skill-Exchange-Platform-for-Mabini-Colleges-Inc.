@@ -279,7 +279,7 @@ export default function SessionsPage() {
           </div>
         ) : sessions.length === 0 ? (
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-12 border border-gray-100 dark:border-gray-800 text-center">
-            <div className="mb-4"><Icon name="handshake" className="w-16 h-16 text-primary-400" /></div>
+            <div className="mb-4 flex justify-center"><Icon name="handshake" className="w-16 h-16 text-primary-400" /></div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No sessions found</h3>
             <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
               {filters.keyword ? 'Try a different search term.' : 'No sessions match the current filters.'}
