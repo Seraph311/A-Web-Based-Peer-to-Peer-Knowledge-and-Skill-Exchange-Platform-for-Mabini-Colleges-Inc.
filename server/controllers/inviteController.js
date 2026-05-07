@@ -20,7 +20,7 @@ const getMyInvites = async (req, res) => {
           u.name AS inviter_name,
           u.department AS inviter_department,
           u.role AS inviter_role
-        FROM invites i
+        FROM session_invites i
         JOIN sessions s ON s.session_id = i.session_id
         JOIN users u ON u.user_id = i.inviter_id
         WHERE i.invitee_id = $1
@@ -126,7 +126,7 @@ const createInvite = async (req, res) => {
 
     const insertResult = await client.query(
       `
-        INSERT INTO invites (session_id, inviter_id, invitee_id)
+        INSERT INTO session_invites (session_id, inviter_id, invitee_id)
         VALUES ($1, $2, $3)
         RETURNING invite_id, session_id, inviter_id, invitee_id, status, created_at
       `,
@@ -170,7 +170,7 @@ const respondToInvite = async (req, res) => {
     const inviteResult = await client.query(
       `
         SELECT invite_id, session_id, inviter_id, invitee_id, status
-        FROM invites
+        FROM session_invites
         WHERE invite_id = $1
         FOR UPDATE
       `,
@@ -196,7 +196,7 @@ const respondToInvite = async (req, res) => {
     if (response === 'declined') {
       await client.query(
         `
-          UPDATE invites
+          UPDATE session_invites
           SET status = 'declined', responded_at = NOW()
           WHERE invite_id = $1
         `,
@@ -265,7 +265,7 @@ const respondToInvite = async (req, res) => {
 
     await client.query(
       `
-        UPDATE invites
+        UPDATE session_invites
         SET status = 'accepted', responded_at = NOW()
         WHERE invite_id = $1
       `,
