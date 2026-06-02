@@ -311,6 +311,16 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
+    if (user.status !== 'approved') {
+      if (user.status === 'rejected') {
+        return res.status(403).json({
+          message: 'Your account registration was rejected.',
+          ...(user.rejection_reason ? { reason: user.rejection_reason } : {}),
+        });
+      }
+      return res.status(403).json({ message: 'Account not yet verified. Please verify your email or wait for admin approval.' });
+    }
+
     const token = jwt.sign(
       {
         user_id: user.user_id,

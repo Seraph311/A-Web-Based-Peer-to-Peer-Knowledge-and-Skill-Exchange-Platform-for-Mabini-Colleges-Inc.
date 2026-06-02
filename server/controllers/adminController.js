@@ -9,6 +9,7 @@ const getPendingUsers = async (req, res) => {
         SELECT user_id, name, email, department, role, id_number, id_document_url, status, created_at
         FROM users
         WHERE status = 'pending'
+          AND (email NOT LIKE '%@mabinicolleges.edu.ph' OR otp_code IS NULL)
         ORDER BY created_at ASC
       `
     );
